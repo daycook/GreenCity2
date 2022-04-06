@@ -1,0 +1,27 @@
+package net.jcms.front.siteChckManage.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import net.jcms.framework.base.mapper.BaseMapper;
+import net.jcms.front.siteChckManage.model.SiteChckManage;
+import net.jcms.front.siteChckManage.model.SiteChckManageSearch;
+
+@Mapper (value="siteChckManageMapper")
+public interface SiteChckManageMapper extends BaseMapper<SiteChckManage, SiteChckManageSearch> {
+
+	List<Map<String, Object>> selectSiteChckList(Map<String, Object> paramMap);
+
+	int selectSiteChckListTotal(Map<String, Object> paramMap);
+
+	List<Map<String, Object>> selectSensorList(Map<String, Object> paramMap);
+
+	Map<String, Object> selectSiteAndToolInfo(Map<String, Object> paramMap);
+
+	Map<String, Object> selectSiteAndToolInfoLink(Map<String, Object> paramMap);
+
+	List<Map<String, Object>> selectSensorListLink(Map<String, Object> paramMap);
+
+
+}

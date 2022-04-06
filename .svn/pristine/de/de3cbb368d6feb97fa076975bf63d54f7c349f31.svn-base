@@ -1,0 +1,184 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf"%>
+
+<div class="container-scroller d-flex">
+    <div class="container-fluid page-body-wrapper full-page-wrapper d-flex">
+      <div class="content-wrapper d-flex align-items-center auth px-0">
+        <div class="row w-100 mx-0">
+          <div class="col-lg-4 mx-auto">
+            <div class="auth-form-light text-left py-5 px-4 px-sm-5">
+              <div class="brand-logo" style="text-align: center;">
+                <img src="../images/front/jejuLogo.png" alt="logo" style="height: 80px; width: 150px;"><span style="font-size: 40px; height: 100px;  vertical-align: middle;"><b>스마트그린도시</b></span>
+              </div>
+            
+              <form class="pt-3" action="/login/login.mng" method="post" id="loginForm">
+              	<input type="hidden" value="${path}" name="path">
+                <div class="form-group">
+                	<input type="text" id="userLoginId" name="userLoginId" value="" class="form-control form-control-lg" placeholder="아이디">
+                </div>
+                <div class="form-group">
+                	<input type="password" id="userPwd" name="userPwd" value="" class="form-control form-control-lg" placeholder="비밀번호">
+                </div>
+                <div class="mt-3">
+                  <a class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" id="loginButton" style="color: white; font-weight: bold; font-size: 25px; line-height: 20px; cursor: pointer; background-color: #2b2d46;">LOGIN</a>
+                </div>
+                <div class="my-2 d-flex justify-content-between align-items-center">
+                  <div class="form-check">
+                    <label class="form-check-label text-muted">
+                     	<input type="checkbox" class="" id="saveID" name="saveID">
+                     	 아이디 저장
+                    </label>
+                  </div>
+                  <!--<a href="#" class="auth-link text-black">패스워드 찾기</a>-->
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- content-wrapper ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  
+  <script src="../js/vendor.bundle.base.js"></script>
+  <!-- endinject -->
+  <!-- inject:js -->
+  <script src="../js/off-canvas.js"></script>
+  <script src="../js/hoverable-collapse.js"></script>
+  <script src="../js/template.js"></script>
+  <script src="../js/settings.js"></script>
+  <script src="../js/todolist.js"></script>
+  <!-- endinject -->
+  <!-- plugin js for this page -->
+  <script src="../vendors/moment/moment.min.js"></script>
+<script src="../js/calendar.js"></script> 
+<script src="../js/fullcalendar.min.js"></script>
+
+<script src="<c:url value='/js/jquery/jQuery-2.1.4.min.js' />"></script>
+<script src="<c:url value='/js/plugins/iCheck/icheck.min.js' />"></script>
+<script>
+
+	$(document).ready(function() {
+		$("#userLoginId").focus();
+
+		var error = '<c:out value="${param.error}" />';
+		if(error == '-1') {
+			alert("아이디 또는 비밀번호를 다시 확인하세요. 등록되지 않은 아이디이거나, 아이디 또는 비밀번호를 잘못 입력하셨습니다.");
+		} else if(error == '-2') {
+			alert("패스워드 5회 이상 실패(관리자에게 문의하세요.)");
+		} else {
+			var userInputId = getCookie("userInputId");
+			if(userInputId == ""){
+				$("#saveID").attr("checked", false);	
+			}else{
+				$("#userLoginId").val(userInputId);
+				$("#saveID").attr("checked", true);
+			}		
+		}	
+	});
+	
+	/*
+	$("input").on('ifClicked', function (event) {
+		alert("111");
+	    var value = $(this).val();
+	    if(value == "on"){
+	    	deleteCookie("userInputId");
+	    	$("#saveID").attr("checked", false);
+	    }else{
+	    	$("#saveID").attr("checked", true);
+	    }  
+	});
+	*/
+	
+	$("#loginButton").click(function(){
+		if($("#userLoginId").val() == ""){
+			event.preventDefault()
+			alert("아이디를 입력해주세요.");
+		}else if($("#userPwd").val() == ""){
+			event.preventDefault()
+			alert("비밀번호를 입력해주세요.");
+		}else{
+			if($("#saveID").is(":checked")){
+				var userInputId = $("#userLoginId").val();
+ 		        setCookie("userInputId", userInputId, 7); // 7일 동안 쿠키 보관
+			}else{
+				deleteCookie("userInputId");
+			}
+			event.preventDefault();
+ 			$("#loginForm").submit();
+		}
+	});
+	
+	$("input").keypress(function(event) {
+		if(event.which == 13) {
+			if($("#userLoginId").val() == ""){
+				event.preventDefault()
+				alert("아이디를 입력해주세요.");
+			}else if($("#userPwd").val() == ""){
+				event.preventDefault()
+				alert("비밀번호를 입력해주세요.");
+			}else{
+				if($("#saveID").is(":checked")){
+					var userInputId = $("#userLoginId").val();
+	 		        setCookie("userInputId", userInputId, 7); // 7일 동안 쿠키 보관
+				}else{
+					deleteCookie("userInputId");
+				}
+				 event.preventDefault();
+	 			 $("#loginForm").submit();
+			}
+		}
+	});
+	
+	//쿠키 등록 함수
+	function setCookie(cookieName, value, exdays){
+	    var exdate = new Date();
+	    exdate.setDate(exdate.getDate() + exdays);
+	    var cookieValue = escape(value) + ((exdays==null) ? "" : "; expires=" + exdate.toGMTString());
+	    document.cookie = cookieName + "=" + cookieValue;
+	}
+	
+	//쿠키 삭제 함수
+	function deleteCookie(name){
+	    today   = new Date();
+	    today.setDate(today.getDate() - 1);
+	    document.cookie = name + "=; path=/; expires=" + today.toGMTString() + ";";
+	}
+	
+	//쿠키 호출 함수
+	function getCookie(cookieName) {
+	    cookieName = cookieName + '=';
+	    var cookieData = document.cookie;
+	    var start = cookieData.indexOf(cookieName);
+	    var cookieValue = '';
+	    if(start != -1){
+	        start += cookieName.length;
+	        var end = cookieData.indexOf(';', start);
+	        if(end == -1)end = cookieData.length;
+	        cookieValue = cookieData.substring(start, end);
+	    }
+	    return unescape(cookieValue);
+	}
+	
+	/*
+	function loginPage() {
+		$.ajax({
+			url : "<c:url value='/login/login.mng'/>",
+			type : "POST",
+			data : $("#loginForm").serialize(),
+			dataType : "json",
+			success : function(res){
+				if ("success" == res.result) {
+					alert("실패");
+					location.href="/system/main.mng";
+				}else {
+					alert("실패");
+					alert(res.message);
+				}
+			}
+		})
+	} 
+	*/
+	
+</script>	

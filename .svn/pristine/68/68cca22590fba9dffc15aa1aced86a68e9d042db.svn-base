@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.front.siteInfo.mapper.SiteInfoMapper">
+		<select id="selectSiteInfoList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM
+			(SELECT ROWNUM AS NUM, A.*,
+			FN_GET_CODE_NM('CODE002', A.SITE_BDGR) AS SITE_BDGR_NM, 
+			FN_GET_CODE_NM('CODE003', A.SITE_SDGR) AS SITE_SDGR_NM
+			FROM 
+			(SELECT * FROM VW_GW_SITE_INFO
+			<if test="searchTitle == 'nm'">
+				AND SITE_NAME LIKE '%'||#{searchTxt}||'%'
+			</if>
+			<if test="searchTitle == 'perm'">
+				AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt})||'%'
+			</if>
+			ORDER BY SITE_NAME)A)
+			WHERE NUM BETWEEN ${firstRecordIndex}+1 AND ${firstRecordIndex}+10
+		</select>
+		
+		<select id="selectSiteInfoListCount" parameterType="Map" resultType="Integer">
+			SELECT COUNT(*) FROM VW_GW_SITE_INFO
+			WHERE 1=1
+			<if test="searchTitle == 'nm'">
+				AND SITE_NAME LIKE '%'||#{searchTxt}||'%'
+			</if>
+			<if test="searchTitle == 'perm'">
+				AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt})||'%'
+			</if>
+		</select>
+		
+		<select id="selectSiteInfo" parameterType="Map" resultType="egovMap">
+			SELECT * FROM VW_GW_SITE_INFO
+			WHERE SITE_RPMSNO = #{searchTxt}
+		</select>
+		
+		<select id="selectSiteInfoAndData" parameterType="Map" resultType="egovMap">
+			SELECT A.*, B.GL, B.EC, B.TEMP, B.M_SN, TO_CHAR(TO_DATE(B.DATA_TIME, 'YYYYMMDDhh24miss'), 'YYYY-MM-DD hh24:mi:ss') AS DATA_TIME FROM
+			(SELECT * FROM VW_GW_SITE_INFO WHERE SITE_ID = #{siteId}) A
+			LEFT OUTER JOIN
+			(SELECT * FROM
+			(SELECT * FROM GW_DATA_VALUE
+			WHERE SITE_ID = #{siteId} AND M_SN = 'S11'
+			ORDER BY DATA_TIME DESC)
+			WHERE ROWNUM = 1)
+			B ON A.SITE_ID = B.SITE_ID
+		</select>
+		
+		<select id="selectSiteInfoAllList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM VW_GW_SITE_INFO
+			ORDER BY SITE_NAME
+		</select>
+</mapper>

@@ -1,0 +1,370 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf"%>
+<!DOCTYPE html>
+<html>
+<div class="contentWrap">
+	<div class="baseTableCont">
+		<h3 style="display:inline-block;">${menu.menuNm}</h3>
+		<form id="updateForm" onsubmit="return false">
+			<div class="form-group" style='display:block; background: #efefef;'>
+				<label style="width:20%;">
+					<span>관측소명
+						<select id="searchObsvname" name="searchObsvname" class="form-control" style="width:60%;" onchange="fn_Sensorname()">
+
+						</select>
+					</span>
+				</label>
+				<label style="width:15%;">
+					<span>센서
+						<select id="searchSsname" name="searchSsname" class="form-control" style="width:60%;">
+
+						</select>
+					</span>
+				</label>
+				<label style="width:35%;">
+					<span>&ensp;관측기간
+						<input type='text' id='fDate' name='fDate' class="datepicker form-control" onchange="fn_alert()" style="width:20%;" readonly>
+						<input type='textbox' id='fTime' name='fTime' style="width:12%;" value="00:00">
+						<input type='hidden' id='first' name='first'>
+						&nbsp;~&nbsp;
+						<input type='text' id='lDate' name='lDate' class="datepicker form-control" onchange="fn_alert()" style="width:20%;" readonly>
+						<input type='textbox' id='lTime' name='lTime' style="width:12%;" value="23:00">
+						<input type='hidden' id='last' name='last'>
+					</span>
+				</label>
+				<label style="width:10%;">
+					<input type="checkbox">&nbsp;상세검색
+				</label>
+				<label style="width:10%;">
+					<input type="checkbox" id="wholeDate" name="wholeDate">&nbsp;모든날짜
+				</label>
+				<label>
+					<input class="btn btn-outline-blue" type="button" value="검색" onclick="fn_selectList()">
+				</label>				
+			</div>
+			<div>       
+				<table class="baseTable" id="datatable">
+					<colgroup>
+						<col width="4%"/>
+						<col width="12%"/>
+						<col width="6%"/>
+						<col width="6%"/>
+						<col width="6%"/>
+						<col width="6%"/>
+						<col width="6%"/>
+						<col width="6%"/>
+						<col width="12%"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="wholeCheck" name="wholeCheck"></th>
+							<th>날짜</th>
+							<th>GL</th>
+							<th>Pressure</th>
+							<th>Temp</th>
+							<th>EC</th>
+							<th>Barometa</th>
+							<th>Battery</th>
+							<th>버튼</th>
+						</tr>	
+					</thead>
+					<tbody id='tablebody' style="text-align: center;">
+						
+					</tbody>
+				</table>
+			</div>
+			<br>
+			<div>
+				<label style="width:40%;">
+					<span>일괄입력&nbsp;
+						<select id="element" name="element" class="form-control" style="width:115px;">
+							<option>GL</option>
+							<option>Pressure</option>
+							<option>Temp</option>
+							<option>EC</option>
+							<option>Barometa</option>
+							<option>Battery</option>
+						</select>
+					</span>
+					<input type="textbox" style="width:115px;">
+					<input type="button" class="btn btn-outline-blue" value="일괄입력">
+				</label>
+				<label style="float:right;">
+					<input type="button" class="btn btn-outline-blue" value="일괄초기화">
+					<input type="button" class="btn btn-outline-blue" value="일괄삭제">
+				</label>
+			</div>
+		</form>
+		<div>
+			${bod.bodFooter}
+		</div>
+	</div>
+</div>		
+</html>
+<script src="/js/pagination.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+$(document).ready(function() {
+	fn_Date();
+	fn_Obsvname();
+	
+	$("#wholeCheck").change(function(){
+		if($("#wholeCheck").is(":checked")){
+			$("input[name=check]").prop("checked", true);
+		}
+		else{
+			$("input[name=check]").prop("checked", false);
+		}
+	})
+});
+
+//Date 디폴트값 설정 함수
+function fn_Date(){
+	var d = new Date();
+	var s = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#lDate").val(s);
+	
+	var monthOfYear = d.getMonth();
+	d.setMonth(monthOfYear - 1);
+	var f = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#fDate").val(f);
+}
+
+function leadingZeros(n, digits) {
+
+    var zero = '';
+    n = n.toString();
+
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
+}
+
+
+//Date 범위 잘못 선택 시 경고창 띄우는 함수
+function fn_alert(){
+	var fDate = $("#fDate").val(); 
+	var lDate = $("#lDate").val();
+
+	if(fDate > lDate){
+		alert("날짜 범위가 잘못되었습니다.");
+	}
+}
+
+//관측소명 불러오기
+function fn_Obsvname(){
+	
+	$('#searchObsvname').empty();
+	$('#updateForm').ajaxSubmit({
+		url : "<c:url value='/front/statistics/selectObsvname.json'/>",
+		type : "POST",
+		dataType : "json",
+		success : function(data){
+			var ob = data.resultlist;
+			var obl = ob.length;
+			var html = "";
+			
+			for(var i=0; i<obl; i++){
+				html += '<option value="';
+				html += ob[i].siteId;
+				html += '" id = "obsvname' + (i+1);
+				html += '" name = "obsvname' + (i+1);
+				html += '">' + ob[i].siteName + '</option>';
+			}
+			
+			$('#searchObsvname').append(html);
+			fn_Sensorname();
+		}
+	})
+	
+}
+
+
+//관측소 별 센서버튼 불러오기
+function fn_Sensorname(){
+	
+	$('#searchSsname').empty();
+	var searchObsvname = $("#searchObsvname").val();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectSensorList.json'/>",
+		type : "POST",
+		data : {"searchObsvname":searchObsvname},
+		dataType : "json",
+		success : function(data){
+			var ss = data.resultlist;
+			var ssl = ss.length;
+			var html = '';
+			
+			for(var i=0; i<ssl; i++){
+				html += '<option value="';
+				html += ss[i].sensorNm;
+				html += '" id = "sensorname' + (i+1);
+				html += '" name = "sensorname' + (i+1);
+				html += '">' + ss[i].sensorNm + '</option>';
+			}
+			
+			$('#searchSsname').append(html);
+			
+		}
+	})
+}
+
+
+//form 조건에 맞는 selectlist 불러오기
+function fn_selectList(){
+	
+	$(".loading").show();
+	$("#first").val($("#fDate").val()+$("#fTime").val());
+	$("#last").val($("#lDate").val()+$("#lTime").val());
+	var first = $("#first").val();
+	var last = $("#last").val();
+	
+	var searchSsname = $("#searchSsname").val();
+	var searchObsvname = $("#searchObsvname").val();
+	
+	if($("#wholeDate").is(":checked")){
+		var first = '2000-01-0100:00';
+		var last = $("#lDate").val()+'23:00';
+	}
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectUpdateList.json'/>",
+		type : "POST",
+		data : {"searchSsname":searchSsname, "searchObsvname":searchObsvname, "first":first, "last":last},
+		dataType : "json",
+		success : function(result){
+			var html = "";
+			
+			var list = result.resultlist;
+			var leng = list.length;
+			
+			for(var i=0; i<leng; i++){
+				
+				
+				var data = list[i]
+				
+				if(data.dataChgType=='CHG'){
+					html += "<tr id='tr"+data.dataId+"' style='background: #d1d6e6;'>";
+				}
+				else{
+					html += "<tr id='tr"+data.dataId+"'>";
+				}
+				html += "<td><input type='checkbox' id='check"+data.dataId+"' name='check'></td>";
+				html += "<td id='time"+(i+1)+"' name='time"+(i+1)+"'>"+data.time+"</td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.gl)+"' id='gl"+data.dataId+"' name='gl"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.pressr)+"' id='pressr"+data.dataId+"' name='pressr"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.temp)+"' id='temp"+data.dataId+"' name='temp"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.ec)+"' id='ec"+data.dataId+"' name='ec"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.baro)+"' id='baro"+data.dataId+"' name='baro"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.batt)+"' id='batt"+data.dataId+"' name='batt"+(i+1)+"'></td>";
+				html += "<td><input type='button' onclick='fn_org("+data.dataId+")' value='초기화'>";
+				html += "&nbsp;<input type='button' onclick='fn_update("+data.dataId+")' value='수정'>";
+				html += "&nbsp;<input type='button' onclick='fn_delete("+data.dataId+")' value='삭제'></td>";
+				html += "</tr>";
+			}
+
+			$("#tablebody").empty(html);
+			$("#tablebody").append(html);
+			
+			$(".loading").hide();
+		}
+	});
+}
+
+//초기화 시키는 함수
+function fn_org(sn){
+	$.ajax({
+		url : "<c:url value='/front/statistics/resetList.json'/>",
+		type : "POST",
+		data : {"sn": sn},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("초기화되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+/*
+function fn_change(sn){
+	var change = 0;
+	$('#gl'+sn).on("change", function() {
+		change = change + 1;
+	});
+	$('#pressr'+sn).on("change", function() {
+		change = change + 1;
+	});
+	$('#temp'+sn).on("change", function() {
+		change = change + 1;
+	});
+	$('#ec'+sn).on("change", function() {
+		change = change + 1;
+	});
+	$('#baro'+sn).on("change", function() {
+		change = change + 1;
+	});
+	$('#batt'+sn).on("change", function() {
+		change = change + 1;
+	});
+	
+	fn_update(sn, change);
+}
+*/
+
+//데이터 수정
+function fn_update(sn, change){
+
+	var gl = $("#gl"+sn).val();
+	var pressr = $("#pressr"+sn).val();
+	var temp = $("#temp"+sn).val();
+	var ec = $("#ec"+sn).val();
+	var baro = $("#baro"+sn).val();
+	var batt = $("#batt"+sn).val();
+		
+	$.ajax({
+		url : "<c:url value='/front/statistics/updateList.json'/>",
+		type : "POST",
+		data : {"gl": gl, "pressr": pressr, "temp": temp, "ec": ec, "baro": baro, "batt": batt, "sn": sn},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("수정되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+	
+
+//데이터삭제
+function fn_delete(sn){
+	if(confirm("삭제하시겠습니까?")){
+		fn_realDelete(sn);
+	}
+	else{
+		return;
+	}
+}
+
+
+function fn_realDelete(sn){
+	$.ajax({
+		url : "<c:url value='/front/statistics/deleteList.json'/>",
+		type : "POST",
+		data : {"sn": sn},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("삭제되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+</script>

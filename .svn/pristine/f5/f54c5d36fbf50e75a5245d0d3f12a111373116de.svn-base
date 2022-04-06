@@ -1,0 +1,281 @@
+/*기본 틀 설정*/
+.mobile{
+	display: none!important;
+}
+.content{
+width:1900px;;
+min-width: 800px;
+padding:0;
+margin: 0;
+}
+
+.content_mobile{
+width:100%;
+min-width: 200px;
+padding:0;
+margin: 0;
+}
+
+#main-sub{
+	float:left;
+	width:85%;
+	background-color: #ffffff;
+}
+#sidebar-left, #main,#main-sub, #sidebar-right{
+	min-height: 700px				
+}
+body{
+	font-size: 14px!important;
+}
+
+.layoutBody{
+	margin: 0;
+	pause: 0;
+	background-color: #eeeff5;
+}
+#header{
+	background-color: #2b2d46;
+	width:100%;
+	height:50px;
+	text-align: center;
+}
+#subHeader{
+	background: #eeeff5;
+	width:100%;
+	height:50px;
+	text-align: center;
+}
+#sidebar-left{
+	float:left;
+	width:280px;
+	background-color: #eeeff5;
+}
+#main{
+	background-color: #ffffff;
+	width: 100%;
+}
+#main-sub{
+	float:left;
+	background-color: #eeeff5;
+}
+#banner{
+	clear:both;
+	height: 50px;
+	width: 100%;
+	text-align: center;
+	background-color: #ececec;
+}
+#footer{
+	clear:both;
+	height: 170px;
+	width: 100%;
+	text-align: center;
+	background-color: #2b2d46;
+	color: #abacb1;
+	letter-spacing: n
+}
+
+/*세부 틀 지정*/
+
+.headerLogo{
+	color: white; font-size: 30px; float: left;
+}
+.headerLogo span{
+	color: white; font-size: 30px; float: left;
+}
+
+.headerFn{
+	color: white; float: right;
+}
+
+.headerFn span{
+	color: white; float: right; line-height: 50px; margin-right: 30px;
+}
+
+.headerFn span a{
+	color: white;
+	text-decoration: none;
+	cursor: pointer!important;
+}
+
+.headerFn span a:HOVER {
+	color: #ffff00;
+}
+
+.headerLogo span a {
+	color: white;
+	text-decoration: none;
+	cursor: pointer!important;
+}
+
+/*드롭다운 메뉴*/
+.menubar{
+	border:none;
+	border:0px;
+	margin:0px;
+	padding:0px;
+	font: 67.5% "Lucida Sans Unicode", "Bitstream Vera Sans", "Trebuchet Unicode MS", "Lucida Grande", Verdana, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	padding-right: 200px;
+}
+
+.menubar ul{
+	/* background: rgb(109,109,109); */
+	height:50px;
+	list-style:none;
+	margin:0;
+	padding:0;
+	float: right;
+	cursor: pointer;
+}
+
+.menubar li{
+	padding:0px;
+	float: left;
+}
+
+.menubar li a{
+	/* background: rgb(109,109,109); */
+	color:#000000;
+	display:block;
+	font-weight:normal;
+	line-height:50px;
+	margin:0px;
+	padding:0px 25px;
+	text-align:center;
+	text-decoration:none;
+	font-size: 16px;
+}
+
+.menubar li a:hover, .menubar ul li:hover a{
+	/* background: rgb(71,71,71); */
+	color:#313131;
+	text-decoration:none;
+	font-weight: bolder;
+}
+
+.menubar li ul{
+	background: #eeeff5;
+	display:none; /* 평상시에는 드랍메뉴가 안보이게 하기 */
+	height:auto;
+	padding:0px;
+	margin:0px;
+	border:0.5px solid #868686;;
+	position:absolute;
+	width:200px;
+	z-index:200;
+	text-align: center;
+	/*top:1em;
+	/*left:0;*/
+}
+
+.menubar li:hover ul{
+	display:block; /* 마우스 커서 올리면 드랍메뉴 보이게 하기 */
+}
+
+.menubar li li {
+	/* background: rgb(109,109,109); */
+	display:block;
+	float:none;
+	margin:0px;
+	padding:0px;
+	width:200px;
+}
+
+.menubar li:hover li a{
+	background:none;
+}
+
+.menubar li ul a{
+	display:block;
+	height:50px;
+	font-size:12px;
+	font-style:normal;
+	margin:0px;
+	padding:0px 10px 0px 15px;
+	text-align:left;
+	color: #504f4f;
+	font-size: 14px;
+}
+
+.menubar li ul a:hover, .menubar li ul li:hover a{
+	/* background: rgb(71,71,71); */
+	border:0px;
+	color:black;
+	text-decoration:none;
+	font-weight: bold;
+}
+
+.menubar p{
+	clear:left;
+}
+
+
+/*사이드메뉴*/
+
+.side-menubar{
+	border:none;
+	border:0px;
+	margin:0px;
+	padding:0px;
+	font: 67.5% "Lucida Sans Unicode", "Bitstream Vera Sans", "Trebuchet Unicode MS", "Lucida Grande", Verdana, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+}
+
+.side-menubar ul{
+	/* background: rgb(109,109,109); */
+	height:50px;
+	width: 200px;
+	margin-left:20px;
+	list-style:none;
+	text-align: center;
+}
+
+
+.side-menubar .menuNm{
+	margin: auto;
+	width: 200px;
+	text-align: center;
+	height: 80px;
+	padding-top: 25px;
+	font-size: 19px;
+	color:white;
+	background-color: #364679; 
+	/* background: url(/images/front/leftBg.jpg) no-repeat 0 0; */
+}
+
+.side-menubar li{
+	padding:0px;
+	list-style:none;
+}
+
+.side-menubar li a{
+	/* background: rgb(109,109,109); */
+	color:#504f4f;
+	display:block;
+	font-weight:normal;
+	line-height:50px;
+	margin:0px;
+	padding:0px 25px;
+	text-align:center;
+	text-decoration:none;
+	border-bottom: 2px solid #1a2548;
+}
+.side-menubar li a:HOVER{
+	/* background: #575757; */
+	color: black;
+	font-weight:bolder;
+	border-bottom: 3px solid #1a2548;
+}
+
+/* 베너관련 */
+.bannerFront {position: relative; width: 340px; height: 210px;  margin:0 auto; padding:0; overflow: hidden;}
+.bannerFront ul {position: absolute; margin: 0px; padding:0; list-style: none; }
+.bannerFront ul li {float: left; width: 340px; height: 210px; margin:0; padding:0;}
+
+
+/* 관리자만 보는 기능 */
+.onlyManager{display: none;}
+

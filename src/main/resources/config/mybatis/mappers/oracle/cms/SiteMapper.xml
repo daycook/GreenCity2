@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.site.mapper.SiteMapper">
+
+	<select id="select" parameterType="siteSearch" resultType="site">
+		select	
+			SITE_ID, LANG_ID, SITE_NM, DOMAIN, START_URL, COPYRIGHT, REG_DT, REG_ID, UPD_DT, UPD_ID
+		from		
+			JCMS_SITE
+		where
+			DEL_DT IS NULL
+		<if test="!empty(siteId)" > and SITE_ID = #{siteId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="siteSearch" resultType="site">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				SITE_ID, LANG_ID, SITE_NM, DOMAIN, START_URL, COPYRIGHT, REG_DT, REG_ID, UPD_DT, UPD_ID
+			from		
+				JCMS_SITE
+			where
+				DEL_DT IS NULL
+		<if test="!empty(domain)" > and DOMAIN  = #{domain} </if>
+		<if test="!empty(siteIdLike)" > and SITE_ID LIKE '%'|| #{siteIdLike}|| '%' </if>
+		<if test="!empty(siteNmLike)" > and SITE_NM LIKE '%'|| #{siteNmLike}|| '%' </if>
+		<if test="!empty(startUrlLike)" > and START_URL LIKE '%'|| #{startUrlLike}|| '%' </if>
+		<if test="!empty(langId)" > and LANG_ID = #{langId} </if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	            <when test="sort == 'SITE_NM'"> SITE_NM </when>
+	            <when test="sort == 'LANG_ID'"> LANG_ID </when> 
+	            <when test="sort == 'DOMAIN'"> DOMAIN </when> 
+	            <when test="sort == 'START_URL'"> START_URL </when> 
+	            <when test="sort == 'REG_DT'"> REG_DT </when>                                                             
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="siteSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(SITE_ID)
+		from
+			JCMS_SITE
+		where
+	   		DEL_DT IS NULL
+		<if test="!empty(domain)" > and DOMAIN = #{domain} </if>
+		<if test="!empty(siteIdLike)" > and SITE_ID LIKE '%'|| #{siteIdLike}|| '%' </if>
+		<if test="!empty(siteNmLike)" > and SITE_NM LIKE '%'|| #{siteNmLike}|| '%' </if>
+		<if test="!empty(startUrl)" > and START_URL = #{startUrl} </if>
+		<if test="!empty(startUrlLike)" > and START_URL LIKE '%'|| #{startUrlLike}|| '%' </if>
+		<if test="!empty(langId)" > and LANG_ID = #{langId} </if>
+	</select>
+	
+	<insert id="insert" parameterType="site" >
+		<selectKey keyProperty="siteId" resultType="java.lang.Long" order="BEFORE" >
+	    	select SITE_ID_SEQ.NEXTVAL from DUAL
+	  	</selectKey>
+		insert into JCMS_SITE (
+			SITE_ID,
+			LANG_ID,
+			SITE_NM,
+			DOMAIN,
+			START_URL,
+			COPYRIGHT,
+			REG_DT,
+			REG_ID
+		) values (
+			#{siteId}
+			, #{langId}
+			, #{siteNm}
+			, #{domain}
+			, #{startUrl}
+			, #{copyright}
+			, SYSDATE
+			, #{regId}
+		)
+	</insert>
+	
+	<update id="update" parameterType="site">
+		update JCMS_SITE set 
+			LANG_ID = #{langId}
+			,SITE_NM = #{siteNm}
+			,DOMAIN = #{domain}
+			,START_URL = #{startUrl}
+			,COPYRIGHT = #{copyright, jdbcType = CLOB}
+			,UPD_DT = SYSDATE
+			,UPD_ID = #{updId}
+		where 
+			SITE_ID = #{siteId}
+	</update>
+	
+	<update id="delete" parameterType="site">
+		update JCMS_SITE set 
+			DEL_ID = #{delId}
+			,DEL_DT = SYSDATE
+		where 
+			SITE_ID = #{siteId}
+	</update>
+	
+</mapper>

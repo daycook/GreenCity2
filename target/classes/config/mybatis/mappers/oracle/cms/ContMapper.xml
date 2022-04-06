@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.cont.mapper.ContMapper">
+	
+	<select id="select" parameterType="contSearch" resultType="cont">
+		select	
+			CONT_ID,
+			CONT_NM,
+			(select CASE WHEN COUNT(CONT_ID) > 0 THEN 1 ELSE 0 END from JCMS_CONT_BKMAK where JCMS_CONT_BKMAK.CONT_ID = JCMS_CONT.CONT_ID) AS BOOKMARK_YN
+		from		
+			JCMS_CONT
+		where
+			1 = 1
+		<if test="!empty(contId)" >and CONT_ID = #{contId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="contSearch" resultType="cont">
+	select  *
+		from  (
+	select ROWNUM RNUM , T.* 
+		from  (
+	select
+	ALL_LIST.*
+		from  (
+		select	
+			CONT_ID,
+			CONT_NM,
+			(select CASE WHEN COUNT(CONT_ID) > 0 THEN 1 ELSE 0 END from JCMS_CONT_BKMAK where JCMS_CONT_BKMAK.CONT_ID = JCMS_CONT.CONT_ID) AS BOOKMARK_YN
+		from		
+			JCMS_CONT
+		where
+			1 = 1
+		<if test="!empty(sort) and !empty(sortOrd)">
+			order by
+	        <choose>  
+	            <when test="sort == 'BOD_TP'"> BOD_TP </when>
+	            <when test="sort == 'BOD_NM'"> BOD_NM </when> 
+	            <when test="sort == 'LINK_URL'"> LINK_URL </when> 
+	            <when test="sort == 'START_DT'"> START_DT </when> 
+	            <when test="sort == 'END_DT'"> END_DT </when>
+	            <when test="sort == 'REG_DT'"> REG_DT </when>                                                             
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+		    <![CDATA[			    
+				where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+			]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="contSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(CONT_ID)
+		from
+			JCMS_CONT
+		where
+	   		1 = 1
+	</select>
+	
+	<select id="selectSerial" resultType="java.lang.String" >
+  		select 
+  			NVL(MAX(CONT_ID),0)+1
+		from 
+			JCMS_CONT
+  	</select>
+
+	<insert id="insert" parameterType="cont" useGeneratedKeys="true">
+		<selectKey keyProperty="contId" resultType="java.lang.Long" order="AFTER">
+	    	select MAX(CONT_ID) from JCMS_CONT
+	  	</selectKey>
+		insert into JCMS_CONT (
+			CONT_ID,
+			CONT_NM
+		) values (
+			#{contId}
+			,#{contNm}
+		)
+	</insert>
+	
+	<insert id="update" parameterType="cont">
+		update JCMS_CONT set
+			CONT_NM = #{contNm}
+		where
+			CONT_ID = #{contId}
+	</insert>
+	
+	<select id="dynamic" parameterType="contSearch" resultType="java.util.Map">
+	select 
+		<if test="selectList != null" >
+			<foreach item="item" index="index" collection="selectList" separator="," >
+				${item}
+			</foreach>
+		</if>
+	from 
+		JCMS_CONT
+	where
+		1 = 1
+	
+	<if test="groupbyList != null" >
+		GROUP BY
+		<foreach item="item" index="index" collection="groupbyList" separator="," >
+			${item}
+		</foreach>
+	</if>
+	</select>
+</mapper>

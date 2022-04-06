@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.menu.mapper.MenuMapper">
+
+	<select id="select" parameterType="cmsMenuSearch" resultType="cmsMenu">
+		select MENU_ID,SITE_ID, MENU_NM, UPPER_MENU_ID, MENU_URL, MENU_DESC, MENU_ORD, 
+		       MENU_TP, LINK_URL, LINK_TP, CONT_DISP_TP, BOD_ID, USE_ST, REG_ID, 
+		       REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+		from		
+			JCMS_MENU
+		where
+			DEL_DT IS NULL
+		<if test="!empty(menuId)" > and MENU_ID = #{menuId} </if>
+		<if test="!empty(siteId)" > and SITE_ID = #{siteId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="cmsMenuSearch" resultType="cmsMenu">
+		select MENU_ID, SITE_ID, MENU_NM, UPPER_MENU_ID, MENU_URL, MENU_DESC, MENU_ORD,
+		       MENU_TP, LINK_URL, LINK_TP, CONT_DISP_TP, BOD_ID, USE_ST, 
+		       REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+		from		
+			JCMS_MENU
+		where
+			DEL_DT IS NULL
+		<choose>
+			<when test="empty(upperMenuId)"> and UPPER_MENU_ID IS NULL </when>
+			<otherwise>	and UPPER_MENU_ID = #{upperMenuId} </otherwise>
+		</choose>
+		<if test="!empty(siteId)" > and SITE_ID = #{siteId} </if>
+		<if test="!empty(sort) and !empty(sortOrd)" > order by ${sort} ${sortOrd} </if>
+		<if test="pagingYn == true" > LIMIT #{start}, #{length}	</if>
+	</select>
+	
+	<select id="count" parameterType="cmsMenuSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(MENU_ID)
+		from
+			JCMS_MENU
+		where
+	   		DEL_DT IS NULL
+		<if test="!empty(siteId)" > and SITE_ID = #{siteId} </if>
+		<if test="!empty(menuUrl)" > and MENU_URL = #{menuUrl} </if>
+		<choose>
+			<when test="empty(upperMenuId)"> and UPPER_MENU_ID IS NULL </when>
+			<otherwise> and UPPER_MENU_ID = #{upperMenuId} </otherwise>
+		</choose>
+	</select>
+	
+	<select id="selectMaxMenuOrder" parameterType="cmsMenuSearch" resultType="java.lang.Integer" >
+		select 
+  			NVL(MAX(MENU_ORD),0)+1
+		from 
+			JCMS_MENU
+		where 
+			DEL_DT IS NULL
+		<choose>
+			<when test="empty(upperMenuId)"> and UPPER_MENU_ID IS NULL </when>
+			<otherwise> and UPPER_MENU_ID = #{upperMenuId} </otherwise>
+		</choose>
+  	</select>
+	
+	<insert id="insert" parameterType="cmsMenu">
+		insert into JCMS_MENU (
+			MENU_ID,
+			SITE_ID,
+			MENU_NM,
+			UPPER_MENU_ID,
+			MENU_URL,
+			MENU_DESC,
+			MENU_ORD,
+			MENU_TP,
+			LINK_URL,
+			LINK_TP,
+			CONT_DISP_TP,
+			BOD_ID,
+			USE_ST,
+			REG_ID,
+			REG_DT
+		) values (
+			MENU_ID_SEQ.NEXTVAL
+			, #{siteId}
+			, #{menuNm}
+			, #{upperMenuId,jdbcType=NUMERIC}
+			, #{menuUrl}
+			, #{menuDesc,jdbcType=VARCHAR}
+			, #{menuOrd}
+			, #{menuTp}
+			, #{linkUrl,jdbcType=VARCHAR}
+			, #{linkType}
+			, #{contDispType}
+			, #{bodId}
+			, 'Y'
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterType="cmsMenu">
+		update JCMS_MENU set 
+			MENU_NM = #{menuNm}
+			,MENU_URL = #{menuUrl}
+			,MENU_DESC = #{menuDesc,jdbcType=VARCHAR}
+			,MENU_TP = #{menuTp}
+			,LINK_URL = #{linkUrl,jdbcType=VARCHAR}
+			,LINK_TP = #{linkType}
+			,CONT_DISP_TP = #{contDispType}
+			,BOD_ID = #{bodId}
+			,UPD_ID = #{updId}
+			,UPD_DT = SYSDATE
+		where 
+			MENU_ID = #{menuId}
+	</update>
+	
+	<update id="updateOrder" parameterType="cmsMenu">
+		update JCMS_MENU set 
+			UPPER_MENU_ID = #{upperMenuId,jdbcType=VARCHAR}
+			,MENU_ORD = #{menuOrd}
+		where 
+			MENU_ID = #{menuId}
+	</update>
+	
+	<update id="updateUseSt" parameterType="cmsMenu">
+		update JCMS_MENU set 
+			USE_ST = #{useSt}
+		where 
+			MENU_ID = #{menuId}
+	</update>
+	
+	<update id="delete" parameterType="cmsMenu">
+		update JCMS_MENU set 
+			DEL_ID = #{delId}
+			,DEL_DT = SYSDATE
+		where 
+			MENU_ID = #{menuId}
+	</update>
+</mapper>

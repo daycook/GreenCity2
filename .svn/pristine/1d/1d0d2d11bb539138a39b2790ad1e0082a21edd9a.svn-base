@@ -1,0 +1,121 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<div class="contentWrap">
+	<!-- 일반게시판 -->
+	<div class="baseTableCont">
+		<p style="display:inline-block; font-size: 15px;"><span class="material-icons" style="font-size: 15px;">home</span> ${sideMenu.menuNm} > ${menu.menuNm}</p>
+		<div class="clearfix" style="background-color: #e1e1ea; padding-right: 10px;"">
+			<form id="searchForm" onsubmit="return false" style="float:right; margin-top:25px;">
+				<input type="hidden" id="firstRecordIndex" name="firstRecordIndex">
+				<div class="form-group" style="margin-right: 10px;">
+					<input type="hidden" id="searchTitle" name="searchTitle" value="perm">
+					<label for="searchTxt">
+						<select id="searchTxt" name="searchTxt" placeholder="검색어를 입력하세요" title="검색어를 입력하세요" style="width:100%;" class="form-control" onchange="selectList()">
+						</select>
+					</label>
+				</div>
+			</form>
+		</div>
+		<div class="">        
+	 		<div>
+				총 게시물 : <strong id="paginationTotalCnt"></strong>
+			</div>
+			<table class="baseTable" summary="번호,제목,작성자,첨부,등록일,조회수 항목입니다." id="datatable">
+				<colgroup>
+					<col width="5%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="8%"/>
+					<col width="30%"/>
+				</colgroup>
+				<thead>
+					<tr>
+						<th>순번</th>
+						<th>관측소명</th>
+						<th>위도</th>
+						<th>경도</th>
+						<th>표고_TOC</th>
+						<th>관정심도</th>
+						<th>케이싱구경</th>
+						<th>유역구분</th>
+						<th>유역명</th>
+						<th>소재지</th>
+					</tr>
+					
+				</thead>
+				<tbody style="text-align: center;">
+					
+				</tbody>
+			</table>
+
+			<div class="text-center paginationStyle" id="pagination"></div>
+		</div>
+		<div id="insertBtn" style="float:right; margin-top:-74px;">
+			
+		</div>
+		<div>
+			${bod.bodFooter}
+		</div>
+	</div>
+</div>
+<script src="/js/pagination.js"></script>
+
+<script>
+$(document).ready(function() {
+	fn_select_site_list()
+	selectList();
+});
+
+//관측소 정로 리스트 조회
+function selectList(){
+	$(".loading").show();
+	var formData = $("#searchForm").serialize();
+	$.ajax({
+		url : "<c:url value='/front/siteInfo/selectSiteInfoList.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(result){
+			
+			var html = "";
+			var list = result.siteInfoList;
+			var leng = list.length;
+			if(leng == 0){
+				html += "<tr><td colspan='10'>데이터가 존재하지 않습니다.</td></tr>";
+			}else{
+				for(var i=0; i<leng; i++){
+					var data = list[i];
+					html += "<tr>";
+					html += "<td>"+data.num+"</td>";
+					html += "<td>"+udchk(data.siteName)+"</td>";
+					html += "<td>"+udchk(data.siteLa)+"</td>";
+					html += "<td>"+udchk(data.siteLo)+"</td>";
+					html += "<td>"+udchk(data.siteAltoc)+"</td>";
+					html += "<td>"+udchk(data.siteDph)+"</td>"
+					html += "<td>"+udchk(data.siteCalbr)+"</td>";
+					html += "<td>"+udchk(data.siteBdgrNm)+"</td>";
+					html += "<td>"+udchk(data.siteSdgrNm)+"</td>";
+					html += "<td>"+udchk(data.sitePos)+"</td>";
+					html += "</tr>";
+				}
+			}
+			$("#datatable tbody").empty(html);
+			$("#datatable tbody").append(html);
+			
+			setPagination(result.total, 10);
+			renderPagination();
+			
+			$(".loading").hide();
+		},
+		error:function(request,status,error){
+	    	alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+	    }
+	});
+	
+}
+</script>

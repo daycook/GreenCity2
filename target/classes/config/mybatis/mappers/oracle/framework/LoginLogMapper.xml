@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.framework.security.mapper.LoginLogMapper">
+
+	<resultMap id="loginLogUser" type="loginLog">
+		<constructor />
+		<id property="loginLogId" column="LOGIN_LOG_ID" />
+		<result property="userId" column="USER_ID" />
+		<result property="loginIp" column="LOGIN_IP" />
+		<result property="loginDt" column="LOGIN_DT" />
+		<result property="logoutDt" column="LOGOUT_DT" />
+		<association property="user" javaType="userSearch">
+			<id property="userId" column="USER_ID"  />
+			<result property="userLoginId" column="USER_LOGIN_ID"  />
+			<result property="userNm" column="USER_NM"  />
+		</association>
+	</resultMap>
+	
+	<select id="selectList" parameterType="loginLogSearch" resultMap="loginLogUser">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (	
+			select	
+				A.*,
+				B.USER_LOGIN_ID,
+				B.USER_NM
+			from		
+				JCMS_LOGIN_LOG A
+			left join
+				JCMS_USER B
+			on
+				A.USER_ID = B.USER_ID
+			where
+				1=1
+		<if test="!empty(user.userId)" > and A.USER_ID = #{user.userId} </if>
+		<if test="!empty(userLoginIdLike)" > and B.USER_LOGIN_ID LIKE '%'|| #{userLoginIdLike}|| '%' </if>
+		<if test="!empty(userNmLike)" > and B.USER_NM LIKE '%'|| #{userNmLike}|| '%' </if>
+		<if test="!empty(loginIpLike)" > and A.LOGIN_IP LIKE '%'|| #{loginIpLike}|| '%' </if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	        	<when test="sort == 'LOGIN_LOG_ID'"> A.LOGIN_LOG_ID </when>
+	            <when test="sort == 'USER_LOGIN_ID'"> B.USER_LOGIN_ID </when>
+	            <when test="sort == 'LOGIN_IP'"> A.LOGIN_IP </when>
+	            <when test="sort == 'LOGIN_DT'"> A.LOGIN_DT </when>
+	            <when test="sort == 'LOGOUT_DT'"> A.LOGOUT_DT </when> 
+	         </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+	       	) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start} and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="loginLogSearch" resultType="java.lang.Integer">
+		select	
+			COUNT(*)
+		from		
+			JCMS_LOGIN_LOG A
+		left join
+			JCMS_USER B
+		on
+			A.USER_ID = B.USER_ID
+		where
+			1=1
+		<if test="!empty(user.userId)" > and A.USER_ID = #{user.userId}</if>
+		<if test="!empty(userLoginIdLike)" > and B.USER_LOGIN_ID LIKE '%'|| #{userLoginIdLike}|| '%' </if>
+		<if test="!empty(userNmLike)" > and B.USER_NM LIKE '%'|| #{userNmLike}|| '%' </if>
+		<if test="!empty(loginIpLike)" > and A.LOGIN_IP LIKE '%'|| #{loginIpLike}|| '%' </if>
+	</select>
+	
+	<insert id="insert" parameterType="loginLog" >
+		<selectKey keyProperty="loginLogId" resultType="java.lang.Long" order="BEFORE">
+	    	select LOGIN_LOG_ID_SEQ.NEXTVAL AS loginLogId from DUAL
+	  	</selectKey>
+			insert into JCMS_LOGIN_LOG (
+				LOGIN_LOG_ID,
+				USER_ID,
+				LOGIN_IP,
+				LOGIN_DT
+			) values (
+				#{loginLogId},
+				#{user.userId},
+				#{loginIp},
+				SYSDATE
+			)		
+	</insert>
+	
+	<update id="update" parameterType="loginLog">
+		update JCMS_LOGIN_LOG set
+			LOGOUT_DT = SYSDATE
+		where
+			LOGIN_LOG_ID = #{loginLogId}
+	</update>
+</mapper>

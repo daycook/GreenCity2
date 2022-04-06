@@ -1,0 +1,69 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<session>
+	<div style="height: 300px;">
+		<div class="web">
+			<div class="menubar">
+				<ul>
+					<c:forEach var="menu" items="${menuList}" varStatus="status">
+						<c:if test="${menu.menuUrl != 'main' && menu.useSt == 'Y'}">
+							<c:choose>
+								<c:when test="${fn:length(menu.childList) > 0}">
+									<li><a id="current" href="/front/${menu.childList[0].upperMenu.menuUrl}/${menu.childList[0].menuUrl}.do">${menu.menuNm} </a>
+										<ul>
+											<c:forEach var="subMenu" items="${menu.childList}">
+												<c:if test="${subMenu.useSt == 'Y'}">
+													<li><a href="/front/${subMenu.upperMenu.menuUrl}/${subMenu.menuUrl}.do">${subMenu.menuNm}</a></li>
+												</c:if>
+											</c:forEach>
+										</ul>
+									</li>
+								</c:when>
+							</c:choose>
+						</c:if>
+					</c:forEach>
+				</ul>
+			</div>
+		</div>
+		<div class="mobile">
+			<img src="/images/front/front-togle.png" style="float: left; margin-left: 5px; margin-top:15px; width: 40px; cursor: pointer;" onclick="showMenu()">
+			<div class="side-menubar side-menubar-mb" style="display: none; position: relative; top: 50px; width:200px; background-color: #6d6d6d">
+				<c:forEach var="menu" items="${menuList}" varStatus="status">
+					<c:if test="${menu.menuUrl != 'main' && menu.useSt == 'Y'}">
+						<c:choose>
+							<c:when test="${fn:length(menu.childList) > 0}">
+								<li><a id="current" onclick="showSubMenu(${menu.menuId})" style="cursor: pointer;">${menu.menuNm}</a></li>
+									<c:forEach var="subMenu" items="${menu.childList}">
+										<c:if test="${subMenu.useSt == 'Y'}">
+											<li style="display: none; z-index: 9999999999;" class="subMenu_${menu.menuId} subMenuAll"><a style="background-color: #acacac!important;" href="/front/${subMenu.upperMenu.menuUrl}/${subMenu.menuUrl}.do">${subMenu.menuNm}</a></li>
+										</c:if>
+									</c:forEach>
+							</c:when>
+						</c:choose>
+					</c:if>
+				</c:forEach>
+			</div>
+		</div>
+	</div>
+</session>
+
+<script>
+	function showMenu(){
+		if($(".side-menubar-mb").is(":visible")){
+			$(".side-menubar-mb").hide();
+		}
+		else{
+			$(".side-menubar-mb").show();
+		}
+	}
+	
+	function showSubMenu(idx){
+		$(".subMenuAll").hide();
+		if($(".subMenu_"+idx).is(':visible')){
+			$(".subMenu_"+idx).hide();
+		}
+		else if(!$(".subMenu_"+idx).is(':visible')){
+			$(".subMenu_"+idx).show();
+		}
+	}
+</script>

@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<style>
+	.thisMenu{
+		color: black!important;
+		font-weight:bolder!important;
+		border-bottom: 2px solid #959595!important;
+	}
+</style>
+<div class="side-menubar">
+	<div class="menuNm" style="">
+		${sideMenu.menuNm}
+	</div>
+	<c:forEach var="result" items="${sideMenu.childList}">
+		<c:if test="${result.useSt == 'Y'}">	
+			<ul>
+			  <c:choose>
+			  	  <c:when test="${menu.menuId eq result.menuId}">
+			      	<li><a class="thisMenu" href="/front/${startUrl}${result.upperMenu.menuUrl}//${result.menuUrl}.do"><c:out value="${result.menuNm}" /></a></li>
+			      </c:when>
+				  <c:otherwise>
+				  		<li><a href="/front/${startUrl}${result.upperMenu.menuUrl}//${result.menuUrl}.do"><c:out value="${result.menuNm}" /></a></li>
+				  </c:otherwise>
+			  </c:choose>
+		   </ul>		
+		</c:if>
+	</c:forEach>
+</div>

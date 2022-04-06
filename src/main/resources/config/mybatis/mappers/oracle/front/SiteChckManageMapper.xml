@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.front.siteChckManage.mapper.SiteChckManageMapper">
+	<select id="selectSiteChckList" parameterType="Map" resultType="egovMap">
+		SELECT * FROM
+		(SELECT ROWNUM AS NUM, A.* FROM 
+		(SELECT A.*, TO_CHAR(SITE_CHCK_DT, 'YYYY-MM-DD') AS CH_SITE_CHCK_DT, FN_USER_LOGIN_ID(REG_ID) AS LOGIN_ID, FN_GET_CODE_NM('CODE001', CHCK_KND) AS CHCK_KND_NM FROM
+		(SELECT A.*, B.SITE_RPMSNO, B.SITE_NAME, B.LINK_YN FROM 
+		GW_SITE_CHCK A
+		LEFT OUTER JOIN
+		GW_SITE_INFO B
+		ON A.SITE_ID = B.SITE_ID) A
+		WHERE 1=1
+		<if test="searchTitle2 == 'nm'">
+			AND SITE_NAME LIKE '%'||#{searchTxt2}||'%'
+		</if>
+		<if test="searchTitle2 == 'perm'">
+			AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt2})||'%'
+		</if>
+		ORDER BY REG_DT DESC
+		) A) A
+		WHERE NUM BETWEEN ${firstRecordIndex}+1 AND ${firstRecordIndex}+10
+	</select>
+	
+	
+	<select id="selectSiteChckListTotal" parameterType="Map" resultType="Integer">
+		SELECT COUNT(*) FROM
+		(SELECT A.*, B.SITE_RPMSNO, B.SITE_NAME FROM 
+		GW_SITE_CHCK A
+		LEFT OUTER JOIN
+		GW_SITE_INFO B
+		ON A.SITE_ID = B.SITE_ID)
+		WHERE 1=1
+		<if test="searchTitle2 == 'nm'">
+			AND SITE_NAME LIKE '%'||#{searchTxt2}||'%'
+		</if>
+		<if test="searchTitle2 == 'perm'">
+			AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt2})||'%'
+		</if>
+	</select>
+	
+	
+	<select id="selectSensorList" parameterType="Map" resultType="egovMap">
+		SELECT A.SENSOR_ID, A.SERIAL_NO, A.MODEL_SN, A.TYPE, A.PSI, A.COND, A.PORT_NO, B.MODEL_NM
+		FROM GW_SENSOR_INFO A
+		LEFT OUTER JOIN GW_MODEL_INFO B 
+		ON A.MODEL_SN = B.MODEL_SN
+		WHERE SITE_ID = #{siteId}
+	</select>
+	
+	<select id="selectSiteAndToolInfo" parameterType="Map" resultType="egovMap">
+		SELECT * FROM 
+		(SELECT SRI.*, MI.MODEM_ID, MI.SERIAL_NO AS MODEM_SERIAL_NO,
+		(SELECT MODEL_NM FROM GW_MODEL_INFO A WHERE A.MODEL_SN = MI.MODEL_SN) AS MODEM_MODEL_NM, MI.MODEM_NO FROM
+		(SELECT SI.*, RI.RTU_ID, RI.SERIAL_NO AS RTU_SERIAL_NO, TO_CHAR(RI.PURCHS_DT, 'YYYY-MM-DD') AS RTU_PURCHS_DT, 
+		(SELECT MODEL_NM FROM GW_MODEL_INFO A WHERE A.MODEL_SN = RI.MODEL_SN) AS RTU_MODEL_NM
+		FROM VW_GW_SITE_INFO SI
+		LEFT OUTER JOIN
+		GW_RTU_INFO RI
+		ON SI.SITE_ID = RI.SITE_ID) SRI
+		LEFT OUTER JOIN 
+		GW_MODEM_INFO MI
+		ON SRI.SITE_ID = MI.SITE_ID)
+		WHERE SITE_ID = #{siteId}
+	</select>
+	
+	<select id="selectSensorListLink" parameterType="Map" resultType="egovMap">
+		SELECT SENSOR_SN AS SERIAL_NO, SENSOR_NM AS MODEL_NM, SENSOR_TYPE AS TYPE, MAX_PRESS AS PSI, MAX_EC AS COND, USE_PORT AS PORT_NO  FROM GW_SENSOR_INFO@LK_OBSVGW
+		WHERE SITE_CODE = (SELECT SITE_RPMSNO FROM VW_GW_SITE_INFO WHERE SITE_ID = #{siteId})
+	</select>
+	
+	<select id="selectSiteAndToolInfoLink" parameterType="Map" resultType="egovMap">
+		SELECT * FROM 
+		(SELECT SRI.*, MI.MODEM_SN AS MODEM_SERIAL_NO, MI.EQP_CODE AS MODEM_MODEL_NM, MI.MODEM_TEL AS MODEM_NO FROM
+		(SELECT SI.*, RI.RTU_SN AS RTU_SERIAL_NO, RI.INS_DATE AS RTU_PURCHS_DT, RI.EQP_CODE AS RTU_MODEL_NM FROM VW_GW_SITE_INFO SI
+		LEFT OUTER JOIN
+		GW_RTU_INFO@LK_OBSVGW RI
+		ON SI.SITE_RPMSNO = RI.SITE_CODE) SRI
+		LEFT OUTER JOIN 
+		GW_MODEM_INFO@LK_OBSVGW MI
+		ON SRI.SITE_RPMSNO = MI.SITE_CODE)
+		WHERE SITE_ID = #{siteId}
+	</select>
+	
+	<select id="selectRtuInfoList" parameterType="Map" resultType="egovMap">
+		SELECT A.*, (SELECT MODEL_NM FROM GW_MODEL_INFO WHERE MODEL_SN = A.MODEL_SN) AS MODEL_NM FROM GW_RTU_INFO A
+		WHERE SITE_ID IS null
+		AND DEL_ID IS NULL
+		AND DEL_DT IS NULL
+		AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+	</select>
+	
+	<select id="selectModemInfoList" parameterType="Map" resultType="egovMap">
+		SELECT A.*, (SELECT MODEL_NM FROM GW_MODEL_INFO WHERE MODEL_SN = A.MODEL_SN) AS MODEL_NM FROM GW_MODEM_INFO A
+		WHERE SITE_ID IS NULL 
+		AND DEL_ID IS NULL
+		AND DEL_DT IS NULL
+		AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+	</select>
+	
+	<select id="selectSensorInfoList" parameterType="Map" resultType="egovMap">
+		SELECT A.*, (SELECT MODEL_NM FROM GW_MODEL_INFO WHERE MODEL_SN = A.MODEL_SN) AS MODEL_NM FROM GW_SENSOR_INFO A
+		WHERE SITE_ID IS NULL
+		AND DEL_ID IS NULL
+		AND DEL_DT IS NULL
+		AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+	</select>
+	
+	<update id="chgSiteModemOld" parameterType="Map">
+		UPDATE GW_MODEM_INFO
+		SET SITE_ID = NULL
+		WHERE SITE_ID = #{siteId}
+	</update>
+	
+	<update id="chgSiteModemNew" parameterType="Map">
+		UPDATE GW_MODEM_INFO
+		SET SITE_ID = #{siteId}
+		WHERE MODEM_ID = #{modemId}
+	</update>
+	
+	<update id="chgSiteRtuOld" parameterType="Map">
+		UPDATE GW_RTU_INFO
+		SET SITE_ID = null
+		WHERE SITE_ID = #{siteId}
+	</update>
+	
+	<update id="chgSiteRtuNew" parameterType="Map">
+		UPDATE GW_RTU_INFO
+		SET SITE_ID = #{siteId}
+		WHERE RTU_ID = #{rtuId}
+	</update>
+	
+	<update id="chgSiteSensorOld" parameterType="Map">
+		UPDATE GW_SENSOR_INFO
+		SET SITE_ID = NULL,
+			PORT_NO = NULL
+		WHERE SITE_ID = #{siteId}
+		AND PORT_NO = #{portNo}
+	</update>
+	
+	<update id="chgSiteSensorNew" parameterType="Map">
+		UPDATE GW_SENSOR_INFO
+		SET SITE_ID = #{siteId},
+			PORT_NO = #{portNo}
+		WHERE SENSOR_ID = #{sensorId}
+	</update>
+	
+	<select id="selectSiteChekList" parameterType="Map" resultType="egovMap">
+		SELECT A.*, TO_CHAR(SITE_CHCK_DT, 'YYYY-MM-DD') AS CH_SITE_CHCK_DT, FN_USER_LOGIN_ID(REG_ID) AS LOGIN_ID, FN_GET_CODE_NM('CODE001', CHCK_KND) AS CHCK_KND_NM FROM GW_SITE_CHCK A
+		WHERE SITE_ID = #{siteId}
+		ORDER BY SITE_CHCK_DT DESC
+	</select>
+	
+	<select id="selectSiteChekInfo" parameterType="Map" resultType="egovMap">
+		SELECT A.*, TO_CHAR(SITE_CHCK_DT, 'YYYY-MM-DD') AS CH_SITE_CHCK_DT, FN_USER_LOGIN_ID(REG_ID) AS LOGIN_ID, FN_GET_CODE_NM('CODE001', CHCK_KND) AS CHCK_KND_NM FROM GW_SITE_CHCK A
+		WHERE SITE_CHCK_ID = #{siteChckId}
+	</select>
+	
+	<insert id="insertSiteChekInfo" parameterType="Map">
+		INSERT INTO GW_SITE_CHCK(SITE_CHCK_ID, SITE_ID, CHCK_KND, CHCK_IEM, CONT, SITE_CHCK_DT, IP, REG_ID, REG_DT)
+		VALUES(SITE_CHCK_ID_SEQ.NEXTVAL, #{siteId}, #{chckKnd}, #{chckIem}, #{cont}, #{siteChckDt}, #{userIp}, #{userId}, SYSDATE)
+	</insert>
+	
+	<update id="updateSiteChekInfo" parameterType="Map">
+		UPDATE GW_SITE_CHCK
+		SET CHCK_IEM = #{chckIem},
+			CHCK_KND = #{chckKnd}, 
+			CONT = #{cont},
+			SITE_CHCK_DT = #{siteChckDt},
+			IP = #{userIp},
+			UPD_ID = #{userId},
+			UPD_DT = SYSDATE
+		WHERE SITE_CHCK_ID = #{siteChckId}
+	</update>
+	
+	<select id="selectSiteChckStatics" parameterType="Map" resultType="egovMap">
+		SELECT A.*, 
+		DECODE(B.CHCK_KND_1, NULL, 0, B.CHCK_KND_1) AS CHCK_KND_1,
+		DECODE(B.CHCK_KND_2, NULL, 0, B.CHCK_KND_2) AS CHCK_KND_2, 
+		DECODE(B.CHCK_KND_3, NULL, 0, B.CHCK_KND_3) AS CHCK_KND_3, 
+		DECODE(B.CHCK_KND_4, NULL, 0, B.CHCK_KND_4) AS CHCK_KND_4, 
+		DECODE(B.CHCK_KND_5, NULL, 0, B.CHCK_KND_5) AS CHCK_KND_5
+		FROM
+		VW_GW_SITE_INFO A
+		LEFT OUTER JOIN 
+		(SELECT SITE_ID,
+		SUM(CHCK_KND_1) AS CHCK_KND_1,
+		SUM(CHCK_KND_2) AS CHCK_KND_2,
+		SUM(CHCK_KND_3) AS CHCK_KND_3,
+		SUM(CHCK_KND_4) AS CHCK_KND_4,
+		SUM(CHCK_KND_5) AS CHCK_KND_5 FROM 
+		(SELECT 
+		SITE_ID,
+		DECODE(CHCK_KND, '001', 1, 0) AS CHCK_KND_1,
+		DECODE(CHCK_KND, '002', 1, 0) AS CHCK_KND_2,
+		DECODE(CHCK_KND, '003', 1, 0) AS CHCK_KND_3,
+		DECODE(CHCK_KND, '004', 1, 0) AS CHCK_KND_4,
+		DECODE(CHCK_KND, '005', 1, 0) AS CHCK_KND_5
+		FROM 
+		GW_SITE_CHCK)
+		GROUP BY SITE_ID) B
+		ON A.SITE_ID = B.SITE_ID
+		ORDER BY SITE_NAME
+	</select>
+</mapper>

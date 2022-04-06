@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.Research.mapper.QstItemMapper">
+	
+	<sql id="tb">JCMS_QST_ITEM</sql>
+	<sql id="s"> select * </sql>	          
+ 	<sql id="sl"> select QIT_SEQ, QST_SEQ, QIT_CONT, QIT_TY, QIT_ORD, QIT_QRY_GRP </sql>
+	<sql id="f"> from <include refid="tb"/> </sql>	
+	<sql id="ws">
+		<where>
+			and QIT_SEQ = #{qitSeq}
+		</where>
+	</sql>
+	<sql id="wl">
+		<where>
+			<include refid="BaseSql.BaseWhere"/>
+		</where>
+	</sql>	
+	<sql id="ord">
+	    <if test="!empty(sort)">
+			order by			
+	        <choose>  
+	            <when test="sort == 'qitSeq'"> QIT_SEQ </when>
+	        </choose>
+	        <if test="!empty(sortOrd)"><choose>
+	    		<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose></if>
+	    </if>
+	    <if test="empty(sort)">
+	    	order by QIT_SEQ DESC
+	    </if>
+	</sql>
+	
+		
+	<select id="select" parameterType="QstItem" resultType="QstItem">
+		<include refid="s"/>
+		<include refid="f"/>
+		<include refid="ws"/>
+	</select>
+
+	<select id="selectList" parameterType="QstItem" resultType="QstItem">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			<include refid="sl"/>
+			<include refid="f"/>
+			<include refid="wl"/>
+			<include refid="ord"/>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="QstItem" resultType="Integer">
+		select COUNT(*) 
+		<include refid="f"/>
+		<include refid="wl"/>
+	</select>
+	
+	<select id="getNewSn" parameterType="QstItem"  resultType="Integer">
+		select SEQ_RCH_SEQ.NEXTVAL from dual
+	</select>
+
+	<insert id="insert" parameterType="QstItem">
+		insert into <include refid="tb"/> 
+			( QIT_SEQ, QST_SEQ, QIT_CONT, QIT_TY, QIT_ORD, QIT_QRY_GRP			
+			 <include refid="BaseSql.InRegRecStPrm"/>)
+		values 
+			( #{qitSeq}, #{qstSeq}, #{qitCont}, #{qitTy}, #{qitOrd}, #{qitQryGrp}			
+			 <include refid="BaseSql.InRegRecStVal"/>)
+	</insert>
+
+	<update id="update" parameterType="QstItem">
+		update <include refid="tb"/> set
+			QIT_CONT = #{qitCont},
+			QIT_TY = #{qitTy},
+			QIT_ORD = #{qitOrd},
+			QIT_QRY_GRP = #{qitQryGrp}				
+			<include refid="BaseSql.Update"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="delete" parameterType="QstItem">
+		update <include refid="tb"/> set		
+			<include refid="BaseSql.Delete"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="remove" parameterType="QstItem">
+		delete from <include refid="tb"/> 
+		<include refid="ws"/>
+	</update>
+
+</mapper>

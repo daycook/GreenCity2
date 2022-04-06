@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.Research.mapper.AnswerFillMapper">
+	
+	<sql id="tb">JCMS_ANSWER_FILL</sql>
+	<sql id="s"> select * </sql>	          
+ 	<sql id="sl"> select AFILL_SEQ, RCHSM_SEQ, RANS_SEQ, QST_SEQ, AFILL_OBJCT, AFILL_SBJCT </sql>
+	<sql id="f"> from <include refid="tb"/> </sql>	
+	<sql id="ws">
+		<where>
+			and AFILL_SEQ = #{afillSeq}
+		</where>
+	</sql>	
+	<sql id="wl">
+		<where>
+			<if test="!empty(afillObjct)"> and AFILL_OBJCT = #{afillObjct} </if>
+			<if test="!empty(afillSbjct)"> and AFILL_SBJCT like '%' || #{afillSbjct} || '%' </if>
+			<include refid="BaseSql.BaseWhere"/>
+		</where>
+	</sql>
+	<sql id="ord">
+	    <if test="!empty(sort)">
+			order by			
+	        <choose>  
+	            <when test="sort == 'afillSeq'"> AFILL_SEQ </when>
+	        </choose>
+	        <if test="!empty(sortOrd)"><choose>
+	    		<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose></if>
+	    </if>
+	    <if test="empty(sort)">
+	    	order by AFILL_SEQ DESC
+	    </if>
+	</sql>
+	
+		
+	<select id="select" parameterType="answerFill" resultType="answerFill">
+		<include refid="s"/>
+		<include refid="f"/>
+		<include refid="ws"/>
+	</select>
+
+	<select id="selectList" parameterType="answerFill" resultType="answerFill">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			<include refid="sl"/>
+			<include refid="f"/>
+			<include refid="wl"/>
+			<include refid="ord"/>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="answerFill" resultType="Integer">
+		select COUNT(*) 
+		<include refid="f"/>
+		<include refid="wl"/>
+	</select>
+
+	<insert id="insert" parameterType="answerFill">
+		insert into <include refid="tb"/> 
+			( AFILL_SEQ, RCHSM_SEQ, RANS_SEQ, QST_SEQ, AFILL_OBJCT, AFILL_SBJCT			
+			 <include refid="BaseSql.InRegRecStPrm"/>)
+		values 
+			( #{afillSeq}, #{rchsmSeq}, #{ransSeq}, #{qstSeq}, #{afillObjct}, #{afillSbjct}			
+			 <include refid="BaseSql.InRegRecStVal"/>)
+	</insert>
+
+	<update id="update" parameterType="answerFill">
+		update <include refid="tb"/> set
+			AFILL_OBJCT = #{afillObjct},
+			AFILL_SBJCT = #{afillSbjct}						
+			<include refid="BaseSql.Update"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="delete" parameterType="answerFill">
+		update <include refid="tb"/> set		
+			<include refid="BaseSql.Delete"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="remove" parameterType="answerFill">
+		delete from <include refid="tb"/> 
+		<include refid="ws"/>
+	</update>
+
+</mapper>

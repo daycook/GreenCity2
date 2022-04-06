@@ -1,0 +1,18 @@
+package net.jcms.front.siteChckManage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import net.jcms.framework.base.service.BaseService;
+import net.jcms.front.siteChckManage.model.SiteChckManage;
+import net.jcms.front.siteChckManage.model.SiteChckManageSearch;
+
+public interface SiteChckManageService extends BaseService<SiteChckManage, SiteChckManageSearch> {
+
+	List<Map<String, Object>> selectSiteChckList(Map<String, Object> paramMap);
+
+	int selectSiteChckListTotal(Map<String, Object> paramMap);
+
+	Map<String, Object> selectSiteAndToolInfo(Map<String, Object> paramMap);
+	
+}

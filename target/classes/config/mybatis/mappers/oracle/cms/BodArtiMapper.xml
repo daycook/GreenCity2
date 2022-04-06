@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.bod.mapper.BodArtiMapper">
+
+	<select id="select" parameterType="bodArtiSearch" resultType="bodArti">
+		select	
+			ARTI_ID, BOD_ID, DEPTH, TITLE, CONT, SCRT_YN, NOTI_YN, FILE_ID,
+			(select COUNT(ITEM_ID) from JCMS_FILE_ITEM where JCMS_FILE_ITEM.FILE_ID = JCMS_BOD_ARTI.FILE_ID) AS FILE_CNT,
+			FILE_PRVIEW, HIT, REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+		from		
+			JCMS_BOD_ARTI
+		where
+			DEL_DT IS NULL
+		<if test="!empty(artiId)" > and ARTI_ID = #{artiId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="bodArtiSearch" resultType="bodArti">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				ARTI_ID, BOD_ID, DEPTH, TITLE, CONT, SCRT_YN, NOTI_YN, FILE_ID,
+				(select COUNT(ITEM_ID) from JCMS_FILE_ITEM where JCMS_FILE_ITEM.FILE_ID = JCMS_BOD_ARTI.FILE_ID) AS FILE_CNT,
+				FILE_PRVIEW, HIT, REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+			from		
+				JCMS_BOD_ARTI
+			where
+				DEL_DT IS NULL
+			<if test="!empty(bodId)" > and BOD_ID = #{bodId} </if>
+			<if test="scrtYn != null" > and SCRT_YN = #{scrtYn} </if>
+			<if test="notiYn != null" > and NOTI_YN = #{notiYn} </if>
+			<if test="!empty(titleLike)" > and TITLE LIKE '%'||#{titleLike}||'%' </if>
+			<if test="!empty(contLike)" > and CONT LIKE '%'||#{contLike}||'%' </if>
+			order by ARTI_ID ASC
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+		<if test="pagingYn == true" >
+			<![CDATA[ where  RNUM  > #{start} and RNUM <= #{start} + #{length} ]]>
+		</if>
+	</select>
+	<select id="selectRecList" resultType="bodArti">
+		SELECT * FROM
+		(SELECT ROWNUM AS NUM, A.* FROM
+		(SELECT C.*, (SELECT BOD_NM FROM JCMS_BOD B WHERE B.BOD_ID = C.BOD_ID) AS BOD_NM FROM JCMS_BOD_ARTI C
+		ORDER BY REG_DT DESC) A)
+		WHERE NUM BETWEEN 1 AND 10
+	</select>
+	
+	<select id="count" parameterType="bodArtiSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(ARTI_ID)
+		from
+			JCMS_BOD_ARTI
+		where
+	   		DEL_DT IS NULL
+		<if test="scrtYn != null" > and SCRT_YN = #{scrtYn} </if>
+		<if test="notiYn != null" > and NOTI_YN = #{notiYn} </if>
+		<if test="!empty(bodId)" > and BOD_ID = #{bodId} </if>
+		<if test="!empty(titleLike)" > and TITLE LIKE '%'||#{titleLike}||'%' </if>
+		<if test="!empty(contLike)" > and CONT LIKE '%'||#{contLike}||'%' </if>
+	</select>
+	
+	<insert id="insert" parameterType="bodArti" >
+		<selectKey keyProperty="artiId" resultType="java.lang.Long" order="BEFORE">
+	    	select ARTI_ID_SEQ.NEXTVAL AS artiId from DUAL
+	  	</selectKey>
+			insert into JCMS_BOD_ARTI (
+				ARTI_ID,
+				BOD_ID,
+				DEPTH,
+				TITLE,
+				CONT,
+				SCRT_YN,
+				NOTI_YN,
+				FILE_ID,
+				FILE_PRVIEW,
+				HIT,
+				REG_ID,
+				REG_DT
+			) values (
+				#{artiId}
+				, #{bodId}
+				, #{depth}
+				, #{title}
+				, #{cont}
+				, #{scrtYn}
+				, #{notiYn}
+				, #{fileId}
+				, #{filePrview}
+				, 0
+				, #{regId}
+				, SYSDATE
+			)
+	</insert>
+
+	<update id="update" parameterType="bodArti">
+		update JCMS_BOD_ARTI set
+			TITLE = #{title}
+			,CONT = #{cont}
+			,SCRT_YN = #{scrtYn}
+			,NOTI_YN = #{notiYn}
+			,FILE_PRVIEW = #{filePrview}
+			,UPD_ID = #{updId}
+			,UPD_DT = SYSDATE
+		where
+			ARTI_ID = #{artiId}
+	</update>
+	
+	<update id="updateHit" parameterType="java.lang.Long">
+		update JCMS_BOD_ARTI set
+			HIT = HIT+1
+		where
+			ARTI_ID = #{artiId}
+	</update>
+	
+	<update id="delete" parameterType="bodArti">
+		update JCMS_BOD_ARTI set
+			DEL_ID = #{delId}
+			,DEL_DT = SYSDATE
+		where
+			ARTI_ID = #{artiId}
+	</update>
+</mapper>

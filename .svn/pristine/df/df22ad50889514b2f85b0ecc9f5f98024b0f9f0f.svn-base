@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<div id="layoutSidenav_nav" style="padding-top: 20px;">
+    <nav class="sb-sidenav accordion sb-sidenav-dark"   id="sidenavAccordion">
+        <div class="sb-sidenav-menu">
+            <div class="nav">
+                <c:forEach var="menu" items="${menuList}" varStatus="status">
+						<c:if test="${menu.menuUrl != 'main' && menu.useSt == 'Y'}">
+							<a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts${menu.menuId}" aria-expanded="false" aria-controls="collapseLayouts">
+			                    <div class="sb-nav-link-icon"></div>
+			                    	<p style="font-size: 17px;">${menu.menuNm}</p>
+			                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down fa-lg"></i></div>
+			                </a>
+			                <div class="collapse<c:if test="${menu.menuId eq sideMenu.menuId}"> show</c:if>" id="collapseLayouts${menu.menuId}" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+			                    <nav class="sb-sidenav-menu-nested nav">
+			                     <c:forEach var="subMenu" items="${menu.childList}">
+									<c:if test="${subMenu.useSt == 'Y'}">
+										<a class="nav-link" href="<c:url value='/front/${subMenu.upperMenu.menuUrl}/${subMenu.menuUrl}.do'/>">- ${subMenu.menuNm}</a>
+									</c:if>
+								</c:forEach>
+			                    </nav>
+			                </div>
+						</c:if>
+				</c:forEach>
+            </div>
+        </div>
+    </nav>
+</div>

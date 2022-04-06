@@ -1,0 +1,50 @@
+package net.jcms.front.statistics.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import net.jcms.framework.base.service.impl.BaseServiceImpl;
+import net.jcms.front.statistics.mapper.StatisticsMapper;
+import net.jcms.front.statistics.model.Statistics;
+import net.jcms.front.statistics.model.StatisticsSearch;
+import net.jcms.front.statistics.service.StatisticsService;
+
+@Service(value="statisticsService")
+public class StatisticsServiceImpl extends BaseServiceImpl<Statistics, StatisticsSearch, StatisticsMapper> implements StatisticsService {
+
+	@Override
+	@Resource (name="statisticsMapper")
+	protected void setMapper (StatisticsMapper mapper) {
+		super.setMapper (mapper);
+	}
+
+	@Override
+	public List<Map<String, Object>> selectRealTimeDataList(Map<String, Object> paramMap) {
+		// TODO Auto-generated method stub
+		return mapper.selectRealTimeDataList(paramMap);
+	}
+
+	@Override
+	public List<Map<String, Object>> selectObsvname() {
+		return mapper.selectObsvname();
+	}
+
+	@Override
+	public List<Map<String, Object>> selectSensorNm(Map<String, Object> paramMap) {
+		return mapper.selectSensorNm(paramMap);
+	}
+
+	@Override
+	public List<Map<String, Object>> selectAvgList(Map<String, Object> paramMap) {
+		return mapper.selectAvgList(paramMap);
+	}
+
+	@Override
+	public int selectAvgListCnt(Map<String, Object> paramMap) {
+		return mapper.selectAvgListCnt(paramMap);
+	}
+}

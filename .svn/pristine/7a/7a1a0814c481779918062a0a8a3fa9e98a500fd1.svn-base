@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.front.siteManage.mapper.SiteManageMapper">
+		<select id="selectSiteManageList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM
+			(SELECT ROWNUM AS NUM, A.* FROM 
+			(SELECT * FROM VW_GW_SITE_INFO
+			WHERE 1=1
+			<if test="searchTitle == 'nm'">
+				AND SITE_NAME LIKE '%'||#{searchTxt}||'%'
+			</if>
+			<if test="searchTitle == 'perm'">
+				AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt})||'%'
+			</if>
+			ORDER BY SITE_NAME)A)
+			WHERE NUM BETWEEN ${firstRecordIndex}+1 AND ${firstRecordIndex}+10
+		</select>
+		
+		<select id="selectSiteManageListCount" parameterType="Map" resultType="Integer">
+			SELECT COUNT(*) FROM VW_GW_SITE_INFO
+			WHERE 1=1
+			<if test="searchTitle == 'nm'">
+				AND SITE_NAME LIKE '%'||#{searchTxt}||'%'
+			</if>
+			<if test="searchTitle == 'perm'">
+				AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt})||'%'
+			</if>
+		</select>
+		
+		<select id="selectSiteChk" parameterType="Map" resultType="Integer">
+			SELECT COUNT(*) FROM VW_GW_SITE_INFO
+			WHERE UPPER(SITE_RPMSNO) = UPPER(#{siteRpmsno})
+		</select>
+		
+		<select id="selectLinkSiteInfo" parameterType="Map" resultType="egovMap">
+			SELECT * FROM VW_LINK_GW_SITE_INFO
+			WHERE SITE_RPMSNO = #{oldSiteSn}
+		</select>
+		
+		<select id="createSiteId" resultType="String">
+			SELECT SITE_ID_SEQ.NEXTVAL FROM DUAL
+		</select>
+		
+		<insert id="insertSiteInfo" parameterType="Map">
+			INSERT INTO GW_SITE_INFO(SITE_ID, SITE_NAME, SITE_POS, SITE_RPMSNO, SITE_BDGR, SITE_SDGR, SITE_TWELL, SITE_ALTOC, SITE_ALBOC, SITE_LA, SITE_LO, SITE_DPH, SITE_CALBR, SITE_MGG, SITE_INSTLDT, SITE_DEVDT, SITE_PIC_1, SITE_PIC_2, SITE_GCOL, USE_ST, REG_ID, REG_DT, LINK_YN)
+			VALUES(#{siteId}, #{siteName}, #{sitePos}, #{siteRpmsno}, #{siteBdgr}, #{siteSdgr}, #{siteTwell}, #{siteAltoc}, #{siteAlboc}, #{siteLa}, #{siteLo}, #{siteDph}, #{siteCalbr}, #{siteMgg}, #{siteInstldt}, #{siteDevdt}, #{sitePic1}, #{sitePic2}, #{siteGcol}, 'Y', #{userId}, SYSDATE, #{linkYn})
+		</insert>
+		
+		<update id="updateSiteInfo" parameterType="Map">
+			UPDATE GW_SITE_INFO
+			SET SITE_NAME = #{siteName}, 
+				SITE_POS = #{sitePos}, 
+				SITE_RPMSNO = #{siteRpmsno}, 
+				SITE_BDGR = #{siteBdgr}, 
+				SITE_SDGR = #{siteSdgr}, 
+				SITE_TWELL = #{siteTwell}, 
+				SITE_ALTOC = #{siteAltoc}, 
+				SITE_ALBOC = #{siteAlboc}, 
+				SITE_LA = #{siteLa}, 
+				SITE_LO = #{siteLo}, 
+				SITE_DPH = #{siteDph}, 
+				SITE_CALBR = #{siteCalbr}, 
+				SITE_MGG = #{siteMgg}, 
+				SITE_INSTLDT = #{siteInstldt}, 
+				SITE_DEVDT = #{siteDevdt}, 
+				SITE_PIC_1 = #{sitePic1}, 
+				SITE_PIC_2 = #{sitePic2}, 
+				SITE_GCOL = #{siteGcol}, 
+				UPD_ID =  #{userId}, 	
+				UPD_DT = SYSDATE
+			WHERE SITE_ID = #{siteId}
+		</update>
+		
+		<insert id="insertSiteInfoHis" parameterType="Map">
+			INSERT INTO GW_SITE_INFO_HIS(SITE_ID, SITE_NAME, SITE_POS, SITE_RPMSNO, SITE_BDGR, SITE_SDGR, SITE_TWELL, SITE_ALTOC, SITE_ALBOC, SITE_LA, SITE_LO, SITE_DPH, SITE_CALBR, SITE_MGG, SITE_INSTLDT, SITE_DEVDT, SITE_PIC_1, SITE_PIC_2, SITE_GCOL, USE_ST, REG_ID, REG_DT)
+			SELECT SITE_ID, SITE_NAME, SITE_POS, SITE_RPMSNO, SITE_BDGR, SITE_SDGR, SITE_TWELL, SITE_ALTOC, SITE_ALBOC, SITE_LA, SITE_LO, SITE_DPH, SITE_CALBR, SITE_MGG, SITE_INSTLDT, SITE_DEVDT, SITE_PIC_1, SITE_PIC_2, SITE_GCOL, USE_ST, #{userId}, SYSDATE 
+			FROM VW_GW_SITE_INFO
+			WHERE SITE_ID = #{siteId}
+		</insert>
+		
+		<select id="selectSiteManage" parameterType="Map" resultType="egovMap">
+			SELECT A.*, 
+			FN_GET_CODE_NM('CODE002', A.SITE_BDGR) AS SITE_BDGR_NM, 
+			FN_GET_CODE_NM('CODE003', A.SITE_SDGR) AS SITE_SDGR_NM FROM VW_GW_SITE_INFO A
+			WHERE SITE_ID = #{siteId}
+		</select>
+		
+		<select id="selectSiteInfoHisList" parameterType="Map" resultType="egovMap">
+			SELECT A.*,
+			FN_GET_CODE_NM('CODE002', A.SITE_BDGR) AS SITE_BDGR_NM, 
+			FN_GET_CODE_NM('CODE003', A.SITE_SDGR) AS SITE_SDGR_NM,
+			TO_CHAR(REG_DT, 'YYYY-MM-DD hh24:mi:ss') AS CH_REG_DT,
+			FN_USER_LOGIN_ID(REG_ID) AS USER_LOGIN_ID
+			FROM GW_SITE_INFO_HIS A
+			WHERE SITE_ID = #{siteId}
+			ORDER BY REG_DT DESC
+		</select>
+		
+		<insert id="insertSensorInfo" parameterType="Map">
+			INSERT INTO GW_SENSOR_INFO(SENSOR_ID, SERIAL_NO, PORT_NO, MAKR, RM, MODEL_NM, PSI, TYPE, COND, INDC_SE, SENSOR_STTUS, INDC_DT, USE_ST, REG_ID, REG_DT)
+			VALUES(SENSOR_ID_SEQ.NEXTVAL, #{serialNo}, #{portNo}, #{makr}, #{rm}, #{modelNm}, #{psi}, #{type}, #{cond}, #{indcSe}, #{sensorSttus}, #{indcDt}, NULL, #{userId}, SYSDATE)
+		</insert>
+
+		<insert id="insertRtuInfo" parameterType="Map">
+			INSERT INTO GW_RTU_INFO(RTU_ID, SERIAL_NO, MODEL_NM, MAKR, COMM_MTHD, SRCELCT_MTHD, INV_PRVN, PURCHS_DT, PURCHS_MTHD, STTUS, RM, USE_ST, REG_ID, REG_DT)
+			VALUES(RTU_ID_SEQ.NEXTVAL, #{serialNo}, #{modelNm}, #{makr}, #{commMthd}, #{srcelctMthd}, #{invPrvn}, SYSDATE<!-- #{purchsDt} -->, #{purchsMthd}, #{sttus}, #{rm}, NULL, #{userId}, SYSDATE)
+		</insert>
+		
+		<insert id="insertModemInfo" parameterType="Map">
+			INSERT INTO GW_MODEM_INFO(MODEM_ID, SERIAL_NO, MODEM_NO, MODEL_NM, MAKR, SITE, RM, USE_ST, REG_ID, REG_DT)
+			VALUES(MODEM_ID_SEQ.NEXTVAL, #{serialNo}, #{modemNo}, #{modelNm}, #{makr}, #{site}, #{rm}, NULL, #{userId}, SYSDATE)
+		</insert>
+		
+		
+		<update id="updateSensorInfo" parameterType="Map">
+			UPDATE GW_SENSOR_INFO
+			SET
+			MAKR = #{makr}, <!-- 제조사-->
+			RM = #{rm}, <!-- 비고-->
+			MODEL_NM = #{modelNm}, <!-- 모델명-->
+			PSI = #{psi}, <!-- PSI-->
+			TYPE = #{type}, <!-- TYPE-->
+			COND = #{cond}, <!-- 상태-->
+			INDC_SE = #{indcSe}, <!-- 도입구분-->
+			SENSOR_STTUS = #{sensorSttus}, <!-- 센서상태-->
+			INDC_DT = #{indcDt}, <!-- 도입날짜-->
+			SITE = #{site}, <!-- 소재지-->
+			USE_ST = #{useSt}, <!-- 사용상태-->
+			UPD_ID = #{userId}, <!-- 수정인ID-->
+			UPD_DT = SYSDATE <!-- 수정일-->
+			WHERE SENSOR_ID = #{sensorId}				
+		</update>
+		
+		<update id="updateRtuInfo" parameterType="Map">
+			UPDATE GW_RTU_INFO
+			SET
+			MODEL_NM = #{modelNm}, <!-- 모델명-->
+			MAKR = #{makr}, <!-- 제조사-->
+			COMM_MTHD = #{commMthd}, <!-- 통신방식-->
+			SRCELCT_MTHD = #{srcelctMthd}, <!-- 전원공급방식-->
+			INV_PRVN = #{invPrvn}, <!-- 역류방지유무-->
+			PURCHS_DT = #{purchsDt}, <!-- 구입날짜-->
+			PURCHS_MTHD = #{purchsMthd}, <!-- 구입방식-->
+			STTUS = #{sttus}, <!-- 현재상태-->
+			SITE = #{site}, <!-- 관측소-->
+			RM = #{rm}, <!-- 비고-->
+			USE_ST = #{useSt}, <!-- 사용상태-->
+			UPD_ID = #{userId}, <!-- 수정인ID-->
+			UPD_DT = SYSDATE <!-- 수정일-->
+			WHERE RTU_ID = #{rtuId}
+		</update>
+		
+		<update id="updateModemInfo" parameterType="Map">
+			UPDATE GW_MODEM_INFO
+			SET
+			MODEM_NO = #{modemNo}, <!-- 모뎀 번호-->
+			MODEL_NM = #{modelNm}, <!-- 모델명-->
+			MAKR = #{makr}, <!-- 제조사-->
+			SITE = #{site}, <!-- 관측소-->
+			RM = #{rm}, <!-- 비고-->
+			USE_ST = #{useSt}, <!-- 사용상태-->
+			UPD_ID = #{userId}, <!-- 수정인ID-->
+			UPD_DT = SYSDATE <!-- 수정일-->
+			WHERE MODEM_ID = #{modemId}
+		</update>
+		
+		
+		<update id="deleteSensorInfo" parameterType="Map">
+			UPDATE GW_SENSOR_INFO
+			SET
+			SITE_ID = NULL, <!-- 관측소 ID-->
+			PORT_NO = NULL, <!-- 포트번호-->
+			DEL_ID = #{userId}, <!-- 삭제인ID-->
+			DEL_DT = SYSDATE <!-- 삭제일-->
+			WHERE SENSOR_ID = #{sensorId}
+		</update>
+		
+		<update id="deleteRtuInfo" parameterType="Map">
+			UPDATE GW_RTU_INFO
+			SET
+			SITE_ID = NULL, <!-- 관측소 ID-->
+			DEL_ID = #{userId}, <!-- 삭제인ID-->
+			DEL_DT = SYSDATE <!-- 삭제일-->
+			WHERE RTU_ID = #{rtuId}
+		</update>
+		
+		<update id="deleteModemInfo" parameterType="Map">
+			UPDATE GW_MODEM_INFO
+			SET
+			SITE_ID = NULL, <!-- 관측소 ID-->
+			DEL_ID = #{userId}, <!-- 삭제인ID-->
+			DEL_DT = SYSDATE <!-- 삭제일-->
+			MODEM_ID = #{modemId}
+		</update>
+		
+		
+		<select id="selectSensorInfoList" parameterType="Map" resultType="egovMap"> 
+			SELECT A.*, TO_CHAR(INDC_DT, 'YYYY-MM-DD') AS CH_INDC_DT, 
+			FN_GET_CODE_NM('CODE004', A.SENSOR_STTUS) AS SENSOR_STTUS_NM,
+			FN_GET_CODE_NM('CODE005', A.SITE) AS SITE_NM
+			FROM GW_SENSOR_INFO A
+			WHERE DEL_ID IS NULL
+			AND DEL_DT IS NULL
+			AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+		</select>
+		
+		<select id="selectRtuInfoList" parameterType="Map" resultType="egovMap">
+			SELECT A.*,
+			TO_CHAR(PURCHS_DT, 'YYYY-MM-DD') AS CH_PURCHS_DT,
+			FN_GET_CODE_NM('CODE004', A.STTUS) AS STTUS_NM
+			FROM GW_RTU_INFO A
+			WHERE DEL_ID IS NULL
+			AND DEL_DT IS NULL
+			AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+		</select>
+		
+		<select id="selectModemInfoList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM GW_MODEM_INFO
+			WHERE DEL_ID IS NULL
+			AND DEL_DT IS NULL
+			AND UPPER(SERIAL_NO) LIKE '%'||UPPER(#{searchTxt})||'%'
+		</select>
+		
+		<select id="selectSensorInfo" parameterType="Map" resultType="egovMap">
+			SELECT A.*, TO_CHAR(INDC_DT, 'YYYY-MM-DD') AS CH_INDC_DT FROM GW_SENSOR_INFO A
+			WHERE SENSOR_ID = #{id} 
+		</select>
+		
+		<select id="selectRtuInfo" parameterType="Map" resultType="egovMap">
+			SELECT A.*, TO_CHAR(PURCHS_DT, 'YYYY-MM-DD') AS CH_PURCHS_DT FROM GW_RTU_INFO A
+			WHERE RTU_ID = #{id} 
+		</select>
+		
+		<select id="selectModemInfo" parameterType="Map" resultType="egovMap">
+			SELECT * FROM GW_MODEM_INFO
+			WHERE MODEM_ID = #{id} 
+		</select>
+		
+		<insert id="insertModemHis" parameterType="Map">
+			INSERT INTO GW_MODEM_HIS(MODEM_HIS_ID, MODEM_ID, SERIAL_NO, SITE_ID, MODEM_NO, MODEL_NM, MAKR, SITE, RM, USE_ST, REG_ID, REG_DT)
+			SELECT MODEM_HIS_ID_SEQ.NEXTVAL, MODEM_ID, SERIAL_NO, SITE_ID, MODEM_NO, MODEL_NM, MAKR, SITE, RM, USE_ST, #{userId}, SYSDATE
+			FROM GW_MODEM_INFO
+			WHERE MODEM_ID = #{modemId}
+		</insert>
+		
+		<insert id="insertRtuHis" parameterType="Map">
+			INSERT INTO GW_RTU_HIS(RTU_HIS_ID, RTU_ID, SERIAL_NO, SITE_ID, MODEL_NM, MAKR, COMM_MTHD, SRCELCT_MTHD, INV_PRVN, MODEM_NO, MODEM_ID, PURCHS_DT, PURCHS_MTHD, STTUS, SITE, RM, USE_ST, REG_ID, REG_DT)
+			SELECT RTU_HIS_ID_SEQ.NEXTVAL, RTU_ID, SERIAL_NO, SITE_ID, MODEL_NM, MAKR, COMM_MTHD, SRCELCT_MTHD, INV_PRVN, MODEM_NO, MODEM_ID, PURCHS_DT, PURCHS_MTHD, STTUS, SITE, RM, USE_ST, #{userId}, SYSDATE
+			FROM GW_RTU_INFO
+			WHERE RTU_ID = #{rtuId}
+		</insert>
+		
+		<insert id="insertSensorHis" parameterType="Map">
+			INSERT INTO GW_SENSOR_HIS(SENSOR_HIS_ID, SENSOR_ID, SERIAL_NO, SITE_ID, PORT_NO, MAKR, RM, MODEL_NM, PSI, TYPE, COND, INDC_SE, SENSOR_STTUS, INDC_DT, SITE, USE_ST, REG_ID, REG_DT)
+			SELECT SENSOR_HIS_ID_SEQ.NEXTVAL, SENSOR_ID, SERIAL_NO, SITE_ID, PORT_NO, MAKR, RM, MODEL_NM, PSI, TYPE, COND, INDC_SE, SENSOR_STTUS, INDC_DT, SITE, USE_ST, #{userId}, SYSDATE
+			FROM GW_SENSOR_INFO
+			WHERE SENSOR_ID = #{sensorId}
+		</insert>
+		
+		<select id="selectToolHis" parameterType="Map" resultType="egovMap">
+			<if test="gubun == 'sensor'">
+				SELECT SH.* FROM 
+				GW_SENSOR_HIS SH
+				WHERE SENSOR_ID = #{sensorId}
+			</if>
+			<if test="gubun == 'modem'">
+				SELECT MH.* FROM 
+				GW_MODEM_HIS MH
+				WHERE MODEM_ID = #{modemId}
+			</if>
+			<if test="gubun == 'rtu'">
+				SELECT RH.* FROM 
+				GW_RTU_HIS RH
+				WHERE RTU_ID = #{rtuId}
+			</if>
+			ORDER BY REG_DT DESC
+		</select>
+</mapper>

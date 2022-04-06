@@ -1,0 +1,546 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf"%>
+<!DOCTYPE html>
+
+<main>
+     <div class="container-fluid px-4">
+         <h1 class="mt-4">${menu.menuNm}</h1>
+         <ol class="breadcrumb mb-4">
+             <li class="breadcrumb-item active"><i class="fas fa-home"></i> ${sideMenu.menuNm} > ${menu.menuNm}</li>
+         </ol>
+         <div class="card mb-4">
+             <div class="card-body">
+             	<form id="updateForm" onsubmit="return false">
+             		<div class="clearfix" style="background-color: #e1e1ea; padding-right: 10px;">	
+						<div class="form-group" style="margin-top:25px;">
+							&nbsp;
+							<label>관측소명</label>
+							<label>
+								<select id="searchObsvname" name="searchObsvname" class="form-control" style="width:130px;" onchange="fn_Sensorname()">
+
+								</select>
+							</label>
+							&nbsp;
+							<label>센서</label>
+							<label for="searchTxt">
+								<select id="searchSsname" name="searchSsname" class="form-control" style="width:90px;;">
+
+								</select>
+							</label>
+							&nbsp;
+							<label>관측기간</label>
+							<label><input type='text' id='fDate' name='fDate' class="datepicker form-control" onchange="fn_alert()" style="width:110px;" readonly></label>
+							<label>
+								<select id='fTime' name='fTime' class="form-control" onchange="fn_alert()" style="width:80px;">
+									<option selected>00:00</option><option>01:00</option><option>02:00</option><option>03:00</option><option>04:00</option><option>05:00</option>
+									<option>06:00</option><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option>
+									<option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option>
+									<option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option><option>22:00</option><option>23:00</option>
+								</select>
+							</label>
+							~
+							<input type='hidden' id='first' name='first'>
+							<label><input type='text' id='lDate' name='lDate' class="datepicker form-control" onchange="fn_alert()" style="width:110px;" readonly></label>
+							<label>
+								<select id='lTime' name='lTime' class="form-control" onchange="fn_alert()" style="width:80px;">
+									<option>00:00</option><option>01:00</option><option>02:00</option><option>03:00</option><option>04:00</option><option>05:00</option>
+									<option>06:00</option><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option>
+									<option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option>
+									<option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option><option>22:00</option><option selected>23:00</option>
+								</select>
+							</label>
+							<input type='hidden' id='last' name='last'>
+							&nbsp;&nbsp;
+							<label>
+								<input class="btn btn-outline-blue" type="button" value="검색" onclick="fn_selectList()">
+							</label>
+						</div>
+					</div>
+					<br>
+                	<div class="" style="overflow: auto; height: 500px;">         
+						<table class="baseTable dataTable" id="Datatable" style="width: 2000px">
+							<colgroup>
+								<col width="2%"/>
+								<col width="8%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="4%"/>
+								<col width="8%"/>
+							</colgroup>
+							<thead>
+								<tr>
+									<th><input type="checkbox" id="wholeCheck" name="wholeCheck"></th>
+									<th>날짜</th>
+									<th>EL</th>
+									<th>GL</th>
+									<th>Pressure</th>
+									<th>Temp</th>
+									<th>EC</th>
+									<th>Barometa</th>
+									<th>Battery</th>
+									<th>NO3</th>
+									<th>NH4</th>
+									<th>PH</th>
+									<th>NH3</th>
+									<th>CL</th>
+									<th>W_BARO</th>
+									<th>Rainfall</th>
+									<th>버튼</th>
+								</tr>	
+							</thead>
+							<tbody id='tablebody' style="text-align: center;">
+								
+							</tbody>
+						</table>
+					</div>
+					<br>
+					<div>
+						<label style="width:60%;">일괄입력	
+							<label>
+								<select id="element" name="element" class="form-control" style="width:115px;">
+									<option>EL</option>
+									<option>GL</option>
+									<option>Pressure</option>
+									<option>Temp</option>
+									<option>EC</option>
+									<option>Barometa</option>
+									<option>Battery</option>
+									<option>NO3</option>
+									<option>NH4</option>
+									<option>PH</option>
+									<option>NH3</option>
+									<option>CL</option>
+									<option>W_BARO</option>
+									<option>Rainfall</option>
+								</select>
+							</label>
+							<label>
+								<input id="elementValue" name="elementValue" type="textbox" style="width:120px;">
+							</label>
+							&nbsp;<input type="button" class="btn btn-outline-blue" value="일괄입력" onclick="fn_groupUpdate()">
+						</label>
+						<label style="float:right;">
+							<input type="button" class="btn btn-outline-blue" value="일괄초기화" onclick="fn_groupReset()">
+							<input type="button" class="btn btn-outline-blue" value="일괄삭제" onclick="fn_groupDetele()">
+						</label>
+					</div>
+					<div>
+						${bod.bodFooter}
+					</div>
+				</form>
+             </div>
+         </div>
+     </div>
+ </main>
+<script>
+$(document).ready(function() {
+	fn_Date();
+	fn_Obsvname();
+
+	$("#wholeCheck").change(function(){
+		if($("#wholeCheck").is(":checked")){
+			$("input[name=check]").prop("checked", true);
+		}
+		else{
+			$("input[name=check]").prop("checked", false);
+		}
+	})
+});
+
+//Date 디폴트값 설정 함수
+function fn_Date(){
+	var d = new Date();
+	var s = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#lDate").val(s);
+	
+	var monthOfYear = d.getMonth();
+	d.setMonth(monthOfYear - 1);
+	var f = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#fDate").val(f);
+}
+
+function leadingZeros(n, digits) {
+
+    var zero = '';
+    n = n.toString();
+
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
+}
+
+
+//Date 범위 잘못 선택 시 경고창 띄우는 함수
+function fn_alert(){
+	var fDate = $("#fDate").val(); 
+	var lDate = $("#lDate").val();
+	var fTime = $("#fTime").val().substring(0,2); 
+	var lTime = $("#lTime").val().substring(0,2);
+	
+	if(fDate > lDate){
+		alert("날짜 범위가 잘못되었습니다.");
+	}
+	if((fDate == lDate) && (fTime > lTime)){
+		alert("시간 범위가 잘못되었습니다.");
+	}
+}
+
+//관측소명 불러오기
+function fn_Obsvname(){
+	
+	$('#searchObsvname').empty();
+	var formData = $("#updateForm").serialize();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectObsvname.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			var ob = data.resultlist;
+			var obl = ob.length;
+			var html = "";
+			
+			for(var i=0; i<obl; i++){
+				html += '<option value="';
+				html += ob[i].siteId;
+				html += '" id = "obsvname' + (i+1);
+				html += '" name = "obsvname' + (i+1);
+				html += '">' + ob[i].siteName + '</option>';
+			}
+			
+			$('#searchObsvname').append(html);
+			fn_Sensorname();
+		}
+	})
+	
+}
+
+
+//관측소 별 센서버튼 불러오기
+function fn_Sensorname(){
+	
+	$('#searchSsname').empty();
+	var searchObsvname = $("#searchObsvname").val();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectSensorList.json'/>",
+		type : "POST",
+		data : {"searchObsvname":searchObsvname},
+		dataType : "json",
+		success : function(data){
+			var ss = data.resultlist;
+			var ssl = ss.length;
+			var html = '';
+			
+			for(var i=0; i<ssl; i++){
+				html += '<option value="';
+				html += ss[i].sensorNm;
+				html += '" id = "sensorname' + (i+1);
+				html += '" name = "sensorname' + (i+1);
+				html += '">' + ss[i].sensorNm + '</option>';
+			}
+			
+			$('#searchSsname').append(html);
+			
+		}
+	})
+}
+
+
+//form 조건에 맞는 selectlist 불러오기
+function fn_selectList(){
+	
+	$(".loading").show();
+	$("#first").val($("#fDate").val()+$("#fTime").val());
+	$("#last").val($("#lDate").val()+$("#lTime").val());
+	var first = $("#first").val();
+	var last = $("#last").val();
+	
+	var searchSsname = $("#searchSsname").val();
+	var searchObsvname = $("#searchObsvname").val();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectUpdateList.json'/>",
+		type : "POST",
+		data : {"searchSsname":searchSsname, "searchObsvname":searchObsvname, "first":first, "last":last},
+		dataType : "json",
+		success : function(result){
+			var html = "";
+			
+			var list = result.resultlist;
+			var leng = list.length;
+			
+			for(var i=0; i<leng; i++){
+				
+				
+				var data = list[i]
+				
+				if(data.dataChgType=='CHG'){
+					html += "<tr id='tr"+data.dataId+"' style='background: #d1d6e6;'>";
+				}
+				else{
+					html += "<tr id='tr"+data.dataId+"'>";
+				}
+				html += "<td><input type='checkbox' id="+data.dataId+" name='check' value='"+data.dataId+"'></td>";
+				html += "<td id='time"+data.dataId+"' name='time"+(i+1)+"'>"+data.time+"</td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.el)+"' id='el"+data.dataId+"' name='el"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.gl)+"' id='gl"+data.dataId+"' name='gl"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.pressr)+"' id='pressr"+data.dataId+"' name='pressr"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.temp)+"' id='temp"+data.dataId+"' name='temp"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.ec)+"' id='ec"+data.dataId+"' name='ec"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.baro)+"' id='baro"+data.dataId+"' name='baro"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.batt)+"' id='batt"+data.dataId+"' name='batt"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.no3)+"' id='no3"+data.dataId+"' name='no3"+(i+1)+"'></td>";				
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.nh4)+"' id='nh4"+data.dataId+"' name='nh4"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.ph)+"' id='ph"+data.dataId+"' name='ph"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.nh3)+"' id='nh3"+data.dataId+"' name='nh3"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.cl)+"' id='cl"+data.dataId+"' name='cl"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.wBaro)+"' id='wBaro"+data.dataId+"' name='wBaro"+(i+1)+"'></td>";
+				html += "<td><input type='textbox' style='width:70px;'value='"+udchk(data.rainfall)+"' id='rainfall"+data.dataId+"' name='rainfall"+(i+1)+"'></td>";
+				html += "<td><input type='button' onclick='fn_org("+data.dataId+")' value='초기화'>";
+				html += "&nbsp;<input type='button' onclick='fn_update("+data.dataId+")' value='수정'>";
+				html += "&nbsp;<input type='button' onclick='fn_delete("+data.dataId+")' value='삭제'></td>";
+				html += "</tr>";
+			}
+
+			$("#tablebody").empty(html);
+			$("#tablebody").append(html);
+			
+			$(".loading").hide();
+		}
+	});
+}
+
+//데이터 초기화
+function fn_org(sn){
+	if(confirm("초기화하시겠습니까?")){
+		fn_realOrg(sn);
+	}
+	else{
+		return;
+	}
+}
+
+function fn_realOrg(sn){
+	$.ajax({
+		url : "<c:url value='/front/statistics/resetList.json'/>",
+		type : "POST",
+		data : {"sn": sn},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("초기화되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+
+//데이터 수정
+function fn_update(sn){
+	var el = $("#el"+sn).val();
+	var gl = $("#gl"+sn).val();
+	var pressr = $("#pressr"+sn).val();
+	var temp = $("#temp"+sn).val();
+	var ec = $("#ec"+sn).val();
+	var baro = $("#baro"+sn).val();
+	var batt = $("#batt"+sn).val();
+	var no3 = $("#no3"+sn).val();
+	var nh4 = $("#nh4"+sn).val();
+	var ph = $("#ph"+sn).val();
+	var nh3 = $("#nh3"+sn).val();
+	var cl = $("#cl"+sn).val();
+	var wBaro = $("#wBaro"+sn).val();
+	var rainfall = $("#rainfall"+sn).val();
+	
+	
+	var time = $("#time"+sn).text();
+	var searchObsvname = $("#searchObsvname").val();
+	var searchSsname = $("#searchSsname").val();
+	
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/changeYnList.json'/>",
+		type : "POST",
+		data : {"time":time, "searchObsvname":searchObsvname, "searchSsname":searchSsname},
+		dataType : "json",
+		success : function(result){
+			var data=result.resultlist;
+			// no3, nh4, ph, nh3, cl, rainfall 추가해야함(현재 null값이라서 추가안함)
+			if((el==data[0].el)&&(gl==data[0].gl)&&(pressr==data[0].pressr)&&(temp==data[0].temp)&&(ec==data[0].ec)&&(baro==data[0].baro)&&(batt==data[0].batt)&&(wBaro==data[0].wBaro)){
+				alert("수정사항이 없습니다");
+			}
+			else{
+				if(confirm("수정하시겠습니까?")){
+					fn_realUpdate(sn);
+				}
+				else{
+					fn_selectList();
+				}
+			}
+		}
+	})
+}
+
+function fn_realUpdate(sn){
+	var el = $("#el"+sn).val();
+	var gl = $("#gl"+sn).val();
+	var pressr = $("#pressr"+sn).val();
+	var temp = $("#temp"+sn).val();
+	var ec = $("#ec"+sn).val();
+	var baro = $("#baro"+sn).val();
+	var batt = $("#batt"+sn).val();
+	var no3 = $("#no3"+sn).val();
+	var nh4 = $("#nh4"+sn).val();
+	var ph = $("#ph"+sn).val();
+	var nh3 = $("#nh3"+sn).val();
+	var cl = $("#cl"+sn).val();
+	var wBaro = $("#wBaro"+sn).val();
+	var rainfall = $("#rainfall"+sn).val();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/updateList.json'/>",
+		type : "POST",
+		data : {"el": el, "gl": gl, "pressr": pressr, "temp": temp, "ec": ec, "baro": baro, "batt": batt, "sn": sn,
+				"no3": no3, "nh4": nh4, "ph": ph, "nh3": nh3, "cl": cl, "wBaro": wBaro, "rainfall": rainfall},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("수정되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+	
+
+//데이터삭제
+function fn_delete(sn){
+	if(confirm("삭제하시겠습니까?")){
+		fn_realDelete(sn);
+	}
+	else{
+		return;
+	}
+}
+
+function fn_realDelete(sn){
+	$.ajax({
+		url : "<c:url value='/front/statistics/deleteList.json'/>",
+		type : "POST",
+		data : {"sn": sn},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("삭제되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+
+//데이터 일괄 삭제
+function fn_groupDetele(){
+	if(confirm("선택한 사항을 삭제하시겠습니까?")){
+		fn_realGroupDelete();
+	}
+	else{
+		return;
+	}
+}
+
+function fn_realGroupDelete(){
+	var arrayCheck = [];
+	$("input[name=check]:checked").each(function(){
+		arrayCheck.push(this.id);
+	});
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/groupDeleteList.json'/>",
+		type : "POST",
+		data : {"arrayCheck":arrayCheck},
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("삭제되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+
+//데이터 일괄 초기화
+function fn_groupReset(){
+	if(confirm("선택한 사항을 초기화하시겠습니까?")){
+		fn_realGroupReset();
+	}
+	else{
+		return;
+	}
+}
+
+function fn_realGroupReset(){
+	var formData = $("#updateForm").serialize();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/groupResetList.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("초기화되었습니다.");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+//데이터 일괄 수정(일괄입력)
+function fn_groupUpdate(){
+	if(confirm("선택한 사항을 수정하시겠습니까?")){
+		fn_realGroupUpdate();
+	}
+	else{
+		return;
+	}
+}
+
+function fn_realGroupUpdate(){
+	var formData = $("#updateForm").serialize();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/groupUpdateList.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			if(data.result=="success"){
+				alert("수정되었습니다.");
+				$("#elementValue").val("");
+				$("#element").val("EL").attr("selected", "selected");
+				fn_selectList();
+			}
+		}
+	})
+}
+
+</script>

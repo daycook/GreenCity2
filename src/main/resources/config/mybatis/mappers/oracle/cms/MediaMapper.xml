@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.media.mapper.MediaMapper">
+	
+	<select id="select" parameterType="mediaSearch" resultType="media">
+		select	
+			MEDIA_ID, MEDIA_NM, HASH, FILE_NM, FILE_EXT, MEDIA_TP, SAVE_PATH, SAVE_FILE_NM, REG_ID, REG_DT
+		from		
+			JCMS_MEDIA
+		where
+			DEL_DT IS NULL
+		<if test="!empty(mediaId)" > and MEDIA_ID = #{mediaId} </if>
+		<if test="!empty(hash)" > and HASH = #{hash} </if>
+	</select>
+	
+	<select id="selectList" parameterType="mediaSearch" resultType="media">
+	select  *
+		from  (
+	select ROWNUM RNUM , T.* 
+		from  (
+	select
+	ALL_LIST.*
+		from  (
+		select	
+			MEDIA_ID, MEDIA_NM, HASH, FILE_NM, FILE_EXT, MEDIA_TP, SAVE_PATH, SAVE_FILE_NM, REG_ID, REG_DT,
+			(select USER_LOGIN_ID from JCMS_USER where USER_ID = JCMS_MEDIA.REG_ID) AS MEDIA_REG_ID,
+			(select USER_NM from JCMS_USER where USER_ID = JCMS_MEDIA.REG_ID) AS MEDIA_REG_NM
+		from		
+			JCMS_MEDIA
+		where
+			DEL_DT IS NULL
+	<if test="!empty(mediaNmLike)" > and MEDIA_NM LIKE '%'||#{mediaNmLike}||'%' </if>
+	<if test="!empty(hashUrlLike)" > and HASH LIKE '%'||#{hashUrlLike}||'%' </if>
+	<if test="!empty(sort) and !empty(sortOrd)">
+    	order by
+        <choose>  
+            <when test="sort == 'MEDIA_NM'"> MEDIA_NM </when>
+            <when test="sort == 'FILE_NM'"> FILE_NM </when> 
+            <when test="sort == 'MEDIA_TP'"> MEDIA_TP </when> 
+            <when test="sort == 'HASH'"> HASH </when> 
+            <when test="sort == 'REG_DT'"> REG_DT </when>                                                             
+        </choose>  
+        <choose>
+        	<when test="sortOrd == 'asc'"> ASC </when>
+        	<when test="sortOrd == 'desc'"> DESC </when>
+        </choose>             
+ 	</if>
+	       	) ALL_LIST
+			where 1 = 1
+			) T
+			)
+    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			where  RNUM  > #{start}
+				   and  RNUM <= #{start} + #{length}
+		]]>
+	</if>
+	</select>
+	
+	<select id="count" parameterType="mediaSearch" resultType="java.lang.Integer">
+  		select 
+			COUNT(MEDIA_ID)
+		from
+			JCMS_MEDIA
+		where
+			DEL_DT IS NULL
+	</select>
+	
+	<insert id="insert" parameterType="media">
+		<selectKey keyProperty="mediaId" resultType="java.lang.Long" order="BEFORE" >
+	    	select MEDIA_ID_SEQ.NEXTVAL from DUAL
+	  	</selectKey>
+		insert into JCMS_MEDIA (
+			MEDIA_ID,
+			MEDIA_NM,
+			HASH,
+			FILE_NM,
+			FILE_SIZE,
+			FILE_EXT,
+			MEDIA_TP,
+			SAVE_PATH,
+			SAVE_FILE_NM,
+			REG_ID,
+			REG_DT
+		) values (
+			#{mediaId}
+			, #{mediaNm}
+			, #{hash,jdbcType=VARCHAR}
+			, #{fileNm}
+			, #{fileSize}
+			, #{fileExt}
+			, #{mediaType}
+			, #{savePath}
+			, #{saveFileNm}
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+	
+	<update id="update" parameterType="media">
+		update JCMS_MEDIA set
+			MEDIA_NM = #{mediaNm}
+		where
+			MEDIA_ID = #{mediaId}
+	</update>
+	
+	<update id="updateHash" parameterType="media">
+		update JCMS_MEDIA set
+			HASH = #{hash}
+		where
+			MEDIA_ID = #{mediaId}
+	</update>
+	
+	<update id="updateFile" parameterType="media">
+		update JCMS_MEDIA set
+			FILE_NM = #{fileNm},
+			FILE_SIZE = #{fileSize},
+			FILE_EXT = #{fileExt},
+			MEDIA_TP = #{mediaType},
+			SAVE_PATH = #{savePath},
+			SAVE_FILE_NM = #{saveFileNm}
+		where
+			MEDIA_ID = #{mediaId}
+	</update>
+	
+	<update id="delete" parameterType="media">
+			update JCMS_MEDIA set
+				DEL_ID = #{delId},
+				DEL_DT = SYSDATE
+			where 
+				MEDIA_ID = #{mediaId}
+	</update>
+</mapper>

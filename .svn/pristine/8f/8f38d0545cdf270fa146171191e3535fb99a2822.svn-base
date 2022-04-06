@@ -1,0 +1,27 @@
+
+#oracle
+AppConf.db.DbType = oracle
+AppConf.db.DriverClassName=oracle.jdbc.driver.OracleDriver
+
+AppConf.db.Url=jdbc:oracle:thin:@dev.jinwoosi.co.kr:1521:orcl
+AppConf.db.UserName=gcity
+AppConf.db.Password=gc2021
+
+#AppConf.db.Url=jdbc:oracle:thin:@test.jinwoosi.co.kr:1521:orcl
+#AppConf.db.UserName=jcms
+#AppConf.db.Password=jcms
+
+#AppConf.db.Url=jdbc:oracle:thin:@gw.jinwoosi.co.kr:5435:jcms
+#AppConf.db.Url=jdbc:oracle:thin:@192.168.62.104:1521:orcl
+
+
+
+AppConf.filePath.common=C:/temp/jcms/file/common/
+AppConf.filePath.media=C:/temp/jcms/file/media/
+AppConf.filePath.video=C:/temp/jcms/file/video/
+
+AppConf.filePath.preview=preview/
+AppConf.filePath.thumb=thumb/
+AppConf.fileNm.thumb=_thumb
+AppConf.fileNm.web=_web
+

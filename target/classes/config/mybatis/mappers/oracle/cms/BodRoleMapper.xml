@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.bod.mapper.BodRoleMapper">
+	<select id="selectList" parameterType="bodRole" resultType="bodRole">
+		select	
+			BOD_ID, ROLE_AUTH, AUTH_TP
+		from		
+			JCMS_BOD_ROLE
+		where
+			1 = 1
+		<if test="!empty(bodId)" > and BOD_ID = #{bodId} </if>
+	</select>
+	
+	<insert id="insert" parameterType="bodRole">
+		insert into JCMS_BOD_ROLE (
+			BOD_ID,
+			ROLE_AUTH,
+			AUTH_TP
+		) values (
+			#{bodId}
+			, #{roleAuth}
+			, #{authTp}
+		)
+	</insert>
+
+	<delete id="delete" parameterType="bodRole">
+		delete from JCMS_BOD_ROLE
+		where 
+			BOD_ID = #{bodId}
+	</delete>
+	
+</mapper>

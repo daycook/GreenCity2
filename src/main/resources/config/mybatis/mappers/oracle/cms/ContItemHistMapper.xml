@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.cont.mapper.ContItemHistMapper">
+	
+	<select id="selectList" parameterType="contItemHistSearch" resultType="contItemHist">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				CONT_ITEM_HIST_ID, CONT_ITEM_NM, CONT_ID, CONT, LANG_ID, REG_ID, REG_DT,
+				(select USER_LOGIN_ID from JCMS_USER where USER_ID = JCMS_CONT_ITEM_HIST.REG_ID) AS CONT_REG_ID,
+				(select USER_NM from JCMS_USER where USER_ID = JCMS_CONT_ITEM_HIST.REG_ID) AS CONT_REG_NM
+			from		
+				JCMS_CONT_ITEM_HIST
+			where
+				1 = 1
+			<if test="!empty(contId)" > and CONT_ID = #{contId} </if>
+			<if test="!empty(langId)" > and LANG_ID = #{langId} </if>
+		<if test="!empty(sort) and !empty(sortOrd)"> 
+			order by
+	        <choose>  
+	            <when test="sort == 'CONT_ITEM_NM'"> CONT_ITEM_NM </when>
+	            <when test="sort == 'BOD_NM'"> BOD_NM </when> 
+	            <when test="sort == 'LINK_URL'"> LINK_URL </when> 
+	            <when test="sort == 'START_DT'"> START_DT </when> 
+	            <when test="sort == 'END_DT'"> END_DT </when>
+	            <when test="sort == 'REG_DT'"> REG_DT </when>                                                             
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+		    <![CDATA[			    
+				 where  RNUM  > #{start}
+				   and  RNUM <= #{start} + #{length}
+			]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="contItemHistSearch" resultType="java.lang.Integer">
+			select	
+				COUNT(CONT_ITEM_HIST_ID)
+			from		
+				JCMS_CONT_ITEM_HIST
+			where
+		   		1 = 1
+			<if test="!empty(contId)" > and CONT_ID = #{contId} </if>
+			<if test="!empty(langId)" > and LANG_ID = #{langId} </if>
+	</select>
+	
+	<insert id="insert" parameterType="contItemHist">
+		insert into JCMS_CONT_ITEM_HIST (
+			CONT_ITEM_HIST_ID,
+			CONT_ITEM_NM,
+			CONT_ID,
+			CONT,
+			LANG_ID,
+			REG_ID,
+			REG_DT
+		) values (
+		CONT_ITEM_HIST_ID_SEQ.NEXTVAL
+			, #{contItemNm}
+			, #{contId}
+			, #{cont ,jdbcType=CLOB}
+			, #{langId}
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+	
+</mapper>

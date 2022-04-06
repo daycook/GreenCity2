@@ -1,0 +1,133 @@
+package net.jcms.front.statistics.web;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import net.jcms.framework.base.web.BaseController;
+import net.jcms.front.common.service.CommonService;
+import net.jcms.front.common.web.CommonController;
+import net.jcms.front.statistics.service.StatisticsService;
+
+@Controller
+public class StatisticsController extends BaseController {
+	@Resource (name="commonService")
+	private CommonService commonService;
+	
+	
+	@Resource (name="statisticsService")
+	private StatisticsService statisticsService;
+	
+	@Autowired
+	private CommonController commonController;
+	
+	@RequestMapping("front/statistics/selectRealTimeDataList.json")
+	@ResponseBody
+	public Map<String, Object>selectRealTimeDataList(HttpServletRequest request){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		List<Map<String,Object>> realTimeDataList = statisticsService.selectRealTimeDataList(paramMap);
+		result.put("realTimeDataList", realTimeDataList);
+		return result;
+	}
+	
+	@RequestMapping("front/statistics/selectRealTimeDataListExcel.json")
+	@ResponseBody
+	public Map<String,Object> selectRealTimeDataListExcel(HttpServletRequest request, HttpServletResponse respons){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		List<Map<String,Object>> realTimeDataList = statisticsService.selectRealTimeDataList(paramMap);
+		
+		String[] title = {"관측소명","센서순번","관정깊이","표고_TOC","관측시간", "수위EL","수위GL","압력","온도","전기전도도","배터리"};
+		String[] cont = {"siteName","mSn","siteDph","siteAltoc","chDataTime", "el","gl","pressr","temp","ec","batt"};
+		
+		String fileName = commonService.excelDown(request, respons, realTimeDataList, title, cont);
+		
+		result.put("fileName", fileName);
+		return result;
+	}
+	
+	
+	//pro302 엑셀다운로드
+	@RequestMapping("front/statistics/selectRealTimeDataListExcel2.json")
+	@ResponseBody
+	public Map<String,Object> selectRealTimeDataListExcel2(HttpServletRequest request, HttpServletResponse respons){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		List<Map<String,Object>> DataList = statisticsService.selectAvgList(paramMap);
+		
+		String[] title = {"날짜","센서","GL","Pressure","Temp","EC", "Barometa","Battery"};
+		String[] cont = {"time","sensor","gl","pressr","temp","ec","baro","batt"};
+		
+		String fileName = commonService.excelDown(request, respons, DataList, title, cont);
+		
+		result.put("fileName", fileName);
+		return result;
+	}
+	
+	
+	@RequestMapping("front/statistics/selectRealTimeDataListExcelDown.do")
+	public void selectRealTimeDataListExcelDown(HttpServletRequest request, HttpServletResponse respons){
+		commonService.download(respons, request.getParameter("excelFileName"), request.getParameter("excelFileDownName"));
+	}
+	
+	
+	//관측소명 selectbox 불러오는 컨트롤러
+	@RequestMapping("front/statistics/selectObsvname.json")
+	@ResponseBody
+	public Map<String, Object>selectObsvname(HttpServletRequest request){
+		Map<String, Object> result = new HashedMap<>();
+		List<Map<String,Object>> resultlist = statisticsService.selectObsvname();
+		result.put("resultlist", resultlist);
+		return result;
+	}
+	
+	
+	//관측소별 센서 불러오기
+	@RequestMapping("front/statistics/selectSensorList.json")
+	@ResponseBody
+	public Map<String, Object>selectSensorList(HttpServletRequest request){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		List<Map<String,Object>> resultlist = statisticsService.selectSensorNm(paramMap);
+		result.put("resultlist", resultlist);
+		return result;
+	}
+	
+	//관측소별 검색
+	@RequestMapping("front/statistics/selectAvgList.json")
+	@ResponseBody
+	public Map<String, Object>selectAvgList(HttpServletRequest request){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		
+		List<Map<String,Object>> DataList = statisticsService.selectAvgList(paramMap);
+		int Count = statisticsService.selectAvgListCnt(paramMap);
+		
+		result.put("DataList", DataList);
+		result.put("Count", Count);
+		
+		return result;
+	}
+	
+	
+	//관측소별 검색(그래프용)
+	@RequestMapping("front/statistics/selectGraphList.json")
+	@ResponseBody
+	public Map<String, Object>selectGraphList(HttpServletRequest request){
+		Map<String, Object> result = new HashedMap<>();
+		Map<String, Object> paramMap = commonController.getParameterMap(request);
+		List<Map<String,Object>> resultlist = statisticsService.selectGraphList(paramMap);
+		result.put("resultlist", resultlist);
+		return result;
+	}
+}

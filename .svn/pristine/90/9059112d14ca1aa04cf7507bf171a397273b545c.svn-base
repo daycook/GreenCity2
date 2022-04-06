@@ -1,0 +1,553 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<div class="contentWrap">
+	<!-- 일반게시판 -->
+	<div class="baseTableCont">
+		<div class="clearfix">
+			<h3 style="display:inline-block;">${menu.menuNm}</h3>
+			<form id="searchForm" onsubmit="return false">
+				
+				<div class="form-group"  style="float:right;">
+					<label style="width:15%;">
+						<span>검색구분 
+							<select id="searchStatistics" name="searchStatistics" class="form-control">						
+								<option value="1">시평균</option>
+								<option value="2">일평균</option>
+								<option value="3">월평균</option>
+							</select>
+						</span> 
+					</label>
+					<label style="width:40%;">
+						<span>&ensp;관측기간
+							<input type='text' id='fDate' name='fDate' class="datepicker form-control" onchange="fn_alert()" style="width:35%;" readonly>&nbsp;~&nbsp;
+							<input type='text' id='lDate' name='lDate' class="datepicker form-control" onchange="fn_alert()" style="width:35%;" readonly>
+						</span>
+					</label>
+					<label style="width:20%;">
+						<span>관측소명
+							<select id="searchObsvname" name="searchObsvname" class="form-control"  onchange="fn_Sensorname()">
+
+							</select>
+						</span>
+					</label>&ensp;
+					<label style="width:10%;">
+						<span>
+							<select id="searchSsname" name="searchSsname" class="form-control">
+
+							</select>
+						</span>
+					</label>&ensp;
+					<button class="btn btn-outline-blue" type="button" onclick="fn_drawScales()">&ensp;검색</button>
+				</div>
+				<br><br><br>
+				<div id='graphElement' style='display:block; background: #efefef;'>항목 변경
+					<br>
+					<label style="width:10%;"><input type="checkbox" id="ec" name="graph" value="ec" checked>EC</label>
+					<label style="width:10%;"><input type="checkbox" id="temp" name="graph" value="temp" checked>TEMP</label>
+					<label style="width:10%;"><input type="checkbox" id="gl" name="graph" value="gl" checked>GL</label>
+					<label style="width:10%;"><input type="checkbox" id="pressr" name="graph" value="pressr">Press</label>
+					<label style="width:10%;"><input type="checkbox" id="baro" name="graph" value="baro">Barometa</label>
+					<label style="width:10%;"><input type="checkbox" id="batt" name="graph" value="batt">Battery</label>
+				</div>	
+			</form>
+		</div>
+		<div>
+
+		</div>
+		<div id="chart_div1"> 
+		</div>
+		<div id="chart_div2">
+		</div>
+		<div id="chart_div3">
+		</div>
+		<div id="chart_div4">
+		</div>
+		<div id="chart_div5">
+		</div>
+		<div id="chart_div6">        
+		</div>
+		
+		<div id="insertBtn" style="float:right; margin-top:-74px;">
+			
+		</div>
+		<div>
+			${bod.bodFooter}
+		</div>
+	</div>
+</div>
+<script src="/js/pagination.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+$(document).ready(function() {
+	fn_Obsvname();
+	fn_Sensorname();
+	fn_Date();
+});
+
+//Date 디폴트값 설정 함수
+function fn_Date(){
+	var d = new Date();
+	var s = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#lDate").val(s);
+	
+	var monthOfYear = d.getMonth();
+	d.setMonth(monthOfYear - 1);
+	var f = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#fDate").val(f);
+}
+
+function leadingZeros(n, digits) {
+
+    var zero = '';
+    n = n.toString();
+
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
+}
+
+
+//Date 범위 잘못 선택 시 경고창 띄우는 함수
+function fn_alert(){
+	var fDate = $("#fDate").val(); 
+	var lDate = $("#lDate").val();
+
+	if(fDate > lDate){
+		alert("날짜 범위가 잘못되었습니다.");
+	}
+}
+
+//관측소명 불러오기
+function fn_Obsvname(){
+	
+	var formData = $("#searchForm").serialize();
+	$('#searchObsvname').empty();
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectObsvname.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			var ob = data.resultlist;
+			var obl = ob.length;
+			var html = "";
+			
+			for(var i=0; i<obl; i++){
+				html += '<option value="';
+				html += ob[i].siteName;
+				html += '" id = "obsvname' + (i+1);
+				html += '" name = "obsvname' + (i+1);
+				html += '">' + ob[i].siteName + '</option>';
+			}
+			
+			$('#searchObsvname').append(html);
+			fn_Sensorname();
+		}
+	})
+
+}
+
+
+//관측소 별 센서목록 불러오기
+function fn_Sensorname(){
+	
+	var searchObsvname = $("#searchObsvname").val();
+	$('#searchSsname').empty();
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectSensorList.json'/>",
+		type : "POST",
+		data : {"searchObsvname":searchObsvname},
+		dataType : "json",
+		success : function(data){
+			var ss = data.resultlist;
+			var ssl = ss.length;
+			var html = '';
+			
+			for(var i=0; i<ssl; i++){
+				html += '<option value="';
+				html += ss[i].sensorNm;
+				html += '" id = "sensorname' + (i+1);
+				html += '" name = "sensorname' + (i+1);
+				html += '">' + ss[i].sensorNm + '</option>';
+			}
+			
+			$('#searchSsname').append(html);
+
+			}
+	})
+}
+
+
+google.charts.load('current', {packages: ['corechart', 'line']});
+google.charts.setOnLoadCallback(drawLogScales1);
+google.charts.setOnLoadCallback(drawLogScales2);
+google.charts.setOnLoadCallback(drawLogScales3);
+google.charts.setOnLoadCallback(drawLogScales4);
+google.charts.setOnLoadCallback(drawLogScales5);
+google.charts.setOnLoadCallback(drawLogScales6);
+
+
+function fn_drawScales() {
+	
+	$("#chart_div1").empty();
+	$("#chart_div2").empty();
+	$("#chart_div3").empty();
+	$("#chart_div4").empty();
+	$("#chart_div5").empty();
+	$("#chart_div6").empty();
+	
+	var searchStatistics = $("#searchStatistics").val();
+	var searchObsvname = $("#searchObsvname").val();
+	var searchSsname = $("#searchSsname").val();
+	var fDate = $("#fDate").val();
+	var lDate = $("#lDate").val();
+	var arrayParam = new Array();
+	$("input:checkbox[name=graph]:checked").each(function(){
+		arrayParam.push(this.value);
+	});
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+		type : "POST",
+		data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+		dataType : "json",
+		success : function(result){
+			var cl = result.resultlist;
+			var cll = cl.length;
+			var second = arrayParam[0];
+			
+		    var data = new google.visualization.DataTable();
+		    data.addColumn('string', 'Date');
+		    data.addColumn('number', second);
+		
+		    var arr = new Array();
+		    
+		    for(var i=0; i<cll; i++) {
+		    	if(second=='ec'){
+		    		arr[i] = [cl[i].time, cl[i].ec];
+		    	}
+		    	else if(second=='temp'){
+		    		arr[i] = [cl[i].time, cl[i].temp];
+		    	}
+		    	else if(second=='gl'){
+		    		arr[i] = [cl[i].time, cl[i].gl];
+		    	}
+		    	else if(second=='pressr'){
+		    		arr[i] = [cl[i].time, cl[i].pressr];
+		    	}
+		    	else if(second=='baro'){
+		    		arr[i] = [cl[i].time, cl[i].baro];
+		    	}
+		    	else if(second=='batt'){
+		    		arr[i] = [cl[i].time, cl[i].batt];
+		    	}
+		    }
+		    
+		    data.addRows(arr);
+		
+		    var options = {
+		        hAxis: {
+		        	title: 'Date',
+		        	gridlines: {count: 10}
+		        },
+		        vAxis: {
+		          title: second
+		        },
+		        colors: ['#097138']
+		    };
+		
+		    var chart = new google.visualization.LineChart(document.getElementById('chart_div1'));
+		    chart.draw(data, options);
+		}
+		
+	})
+	
+	if(arrayParam[1].length){
+		$.ajax({
+			url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+			type : "POST",
+			data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+			dataType : "json",
+			success : function(result){
+				var cl = result.resultlist;
+				var cll = cl.length;
+				var second = arrayParam[1];
+				
+			    var data = new google.visualization.DataTable();
+			    data.addColumn('string', 'Date');
+			    data.addColumn('number', second);
+			
+			    var arr = new Array();
+			    
+			    for(var i=0; i<cll; i++) {
+			    	if(second=='ec'){
+			    		arr[i] = [cl[i].time, cl[i].ec];
+			    	}
+			    	else if(second=='temp'){
+			    		arr[i] = [cl[i].time, cl[i].temp];
+			    	}
+			    	else if(second=='gl'){
+			    		arr[i] = [cl[i].time, cl[i].gl];
+			    	}
+			    	else if(second=='pressr'){
+			    		arr[i] = [cl[i].time, cl[i].pressr];
+			    	}
+			    	else if(second=='baro'){
+			    		arr[i] = [cl[i].time, cl[i].baro];
+			    	}
+			    	else if(second=='batt'){
+			    		arr[i] = [cl[i].time, cl[i].batt];
+			    	}
+			    }
+			    
+			    data.addRows(arr);
+			
+			    var options = {
+			        hAxis: {
+			          title: 'Date'
+			        },
+			        vAxis: {
+			          title: second
+			        },
+			        colors: ['#097138']
+			    };
+			
+			    var chart = new google.visualization.LineChart(document.getElementById('chart_div2'));
+			    chart.draw(data, options);
+			}
+			
+		})
+	}
+	
+	if(arrayParam[2].length){
+		$.ajax({
+			url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+			type : "POST",
+			data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+			dataType : "json",
+			success : function(result){
+				var cl = result.resultlist;
+				var cll = cl.length;
+				var second = arrayParam[2];
+				
+			    var data = new google.visualization.DataTable();
+			    data.addColumn('string', 'Date');
+			    data.addColumn('number', second);
+			
+			    var arr = new Array();
+			    
+			    for(var i=0; i<cll; i++) {
+			    	if(second=='ec'){
+			    		arr[i] = [cl[i].time, cl[i].ec];
+			    	}
+			    	else if(second=='temp'){
+			    		arr[i] = [cl[i].time, cl[i].temp];
+			    	}
+			    	else if(second=='gl'){
+			    		arr[i] = [cl[i].time, cl[i].gl];
+			    	}
+			    	else if(second=='pressr'){
+			    		arr[i] = [cl[i].time, cl[i].pressr];
+			    	}
+			    	else if(second=='baro'){
+			    		arr[i] = [cl[i].time, cl[i].baro];
+			    	}
+			    	else if(second=='batt'){
+			    		arr[i] = [cl[i].time, cl[i].batt];
+			    	}
+			    }
+			    
+			    data.addRows(arr);
+			
+			    var options = {
+			        hAxis: {
+			          title: 'Date'
+			        },
+			        vAxis: {
+			          title: second
+			        },
+			        colors: ['#097138']
+			    };
+			
+			    var chart = new google.visualization.LineChart(document.getElementById('chart_div3'));
+			    chart.draw(data, options);
+			}
+			
+		})
+	}
+	
+	if(arrayParam[3].length){
+		$.ajax({
+			url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+			type : "POST",
+			data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+			dataType : "json",
+			success : function(result){
+				var cl = result.resultlist;
+				var cll = cl.length;
+				var second = arrayParam[3];
+				
+			    var data = new google.visualization.DataTable();
+			    data.addColumn('string', 'Date');
+			    data.addColumn('number', second);
+			
+			    var arr = new Array();
+			    
+			    for(var i=0; i<cll; i++) {
+			    	if(second=='ec'){
+			    		arr[i] = [cl[i].time, cl[i].ec];
+			    	}
+			    	else if(second=='temp'){
+			    		arr[i] = [cl[i].time, cl[i].temp];
+			    	}
+			    	else if(second=='gl'){
+			    		arr[i] = [cl[i].time, cl[i].gl];
+			    	}
+			    	else if(second=='pressr'){
+			    		arr[i] = [cl[i].time, cl[i].pressr];
+			    	}
+			    	else if(second=='baro'){
+			    		arr[i] = [cl[i].time, cl[i].baro];
+			    	}
+			    	else if(second=='batt'){
+			    		arr[i] = [cl[i].time, cl[i].batt];
+			    	}
+			    }
+			    
+			    data.addRows(arr);
+			
+			    var options = {
+			        hAxis: {
+			          title: 'Date'
+			        },
+			        vAxis: {
+			          title: second
+			        },
+			        colors: ['#097138']
+			    };
+			
+			    var chart = new google.visualization.LineChart(document.getElementById('chart_div4'));
+			    chart.draw(data, options);
+			}
+			
+		})
+	}
+	
+	if(arrayParam[4].length){
+		$.ajax({
+			url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+			type : "POST",
+			data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+			dataType : "json",
+			success : function(result){
+				var cl = result.resultlist;
+				var cll = cl.length;
+				var second = arrayParam[4];
+				
+			    var data = new google.visualization.DataTable();
+			    data.addColumn('string', 'Date');
+			    data.addColumn('number', second);
+			
+			    var arr = new Array();
+			    
+			    for(var i=0; i<cll; i++) {
+			    	if(second=='ec'){
+			    		arr[i] = [cl[i].time, cl[i].ec];
+			    	}
+			    	else if(second=='temp'){
+			    		arr[i] = [cl[i].time, cl[i].temp];
+			    	}
+			    	else if(second=='gl'){
+			    		arr[i] = [cl[i].time, cl[i].gl];
+			    	}
+			    	else if(second=='pressr'){
+			    		arr[i] = [cl[i].time, cl[i].pressr];
+			    	}
+			    	else if(second=='baro'){
+			    		arr[i] = [cl[i].time, cl[i].baro];
+			    	}
+			    	else if(second=='batt'){
+			    		arr[i] = [cl[i].time, cl[i].batt];
+			    	}
+			    }
+			    
+			    data.addRows(arr);
+			
+			    var options = {
+			        hAxis: {
+			          title: 'Date'
+			        },
+			        vAxis: {
+			          title: second
+			        },
+			        colors: ['#097138']
+			    };
+			
+			    var chart = new google.visualization.LineChart(document.getElementById('chart_div5'));
+			    chart.draw(data, options);
+			}
+			
+		})
+	}
+	
+	if(arrayParam[5].length){
+		$.ajax({
+			url : "<c:url value='/front/statistics/selectGraphList.json'/>",
+			type : "POST",
+			data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "searchSsname":searchSsname, "fDate":fDate, "lDate":lDate},
+			dataType : "json",
+			success : function(result){
+				var cl = result.resultlist;
+				var cll = cl.length;
+				var second = arrayParam[5];
+				
+			    var data = new google.visualization.DataTable();
+			    data.addColumn('string', 'Date');
+			    data.addColumn('number', second);
+			
+			    var arr = new Array();
+			    
+			    for(var i=0; i<cll; i++) {
+			    	if(second=='ec'){
+			    		arr[i] = [cl[i].time, cl[i].ec];
+			    	}
+			    	else if(second=='temp'){
+			    		arr[i] = [cl[i].time, cl[i].temp];
+			    	}
+			    	else if(second=='gl'){
+			    		arr[i] = [cl[i].time, cl[i].gl];
+			    	}
+			    	else if(second=='pressr'){
+			    		arr[i] = [cl[i].time, cl[i].pressr];
+			    	}
+			    	else if(second=='baro'){
+			    		arr[i] = [cl[i].time, cl[i].baro];
+			    	}
+			    	else if(second=='batt'){
+			    		arr[i] = [cl[i].time, cl[i].batt];
+			    	}
+			    }
+			    
+			    data.addRows(arr);
+			
+			    var options = {
+			        hAxis: {
+			          title: 'Date'
+			        },
+			        vAxis: {
+			          title: second
+			        },
+			        colors: ['#097138']
+			    };
+			
+			    var chart = new google.visualization.LineChart(document.getElementById('chart_div6'));
+			    chart.draw(data, options);
+			}
+			
+		})
+	}
+}
+
+</script>

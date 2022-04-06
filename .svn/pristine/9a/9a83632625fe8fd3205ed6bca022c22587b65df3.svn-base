@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.menu.mapper.MenuContMapper">
+	
+	<select id="selectList" parameterType="cmsMenuContSearch" resultType="cmsMenuCont">
+		select	
+			MENU_ID
+			,CONT_ID
+		from		
+			JCMS_MENU_CONT
+		where
+			1 = 1
+		<if test="!empty(menuId)" > and MENU_ID = #{menuId} </if>
+	</select>
+	
+	<insert id="insert" parameterType="cmsMenuCont">
+		insert into JCMS_MENU_CONT (
+			MENU_ID,
+			CONT_ID
+		) values (
+			#{menuId}
+			, #{contId}
+		)
+	</insert>
+
+	<delete id="delete" parameterType="cmsMenuCont">
+		delete from JCMS_MENU_CONT
+		where 
+			MENU_ID = #{menuId}
+	</delete>
+</mapper>

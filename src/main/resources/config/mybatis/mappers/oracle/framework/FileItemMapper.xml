@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.framework.file.mapper.FileItemMapper">
+
+	<select id="select" parameterType="fileItemSearch" resultType="fileItem">
+		select	
+			FILE_ID, ITEM_ID, FILE_NM, FILE_EXT, MEDIA_TP, FILE_SIZE, SAVE_PATH, SAVE_FILE_NM, DWN_CNT, REG_ID, REG_DT
+		from		
+			JCMS_FILE_ITEM
+		where
+			1=1
+		<if test="!empty(fileId)" > and FILE_ID = #{fileId} </if>
+		<if test="itemId != null" > and ITEM_ID = #{itemId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="fileItemSearch" resultType="fileItem">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				FILE_ID, ITEM_ID, FILE_NM, FILE_EXT, MEDIA_TP, FILE_SIZE, SAVE_PATH, SAVE_FILE_NM, DWN_CNT, REG_ID, REG_DT
+			from		
+				JCMS_FILE_ITEM
+			where
+				1=1
+		<if test="!empty(fileId)" >  and FILE_ID = #{fileId} </if>
+		<if test="itemId != null" > and ITEM_ID = #{itemId} </if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	            <when test="sort == 'FILE_ID'"> FILE_ID </when>
+	            <when test="sort == 'ITEM_ID'"> ITEM_ID </when> 
+	            <when test="sort == 'FILE_NM'"> FILE_NM </when> 
+	            <when test="sort == 'FILE_EXT'"> FILE_EXT </when> 
+	            <when test="sort == 'MEDIA_TP'"> MEDIA_TP </when>
+	            <when test="sort == 'FILE_SIZE'"> FILE_SIZE </when>
+	            <when test="sort == 'SAVE_PATH'"> SAVE_PATH </when>
+	            <when test="sort == 'SAVE_FILE_NM'"> SAVE_FILE_NM </when>
+	            <when test="sort == 'REG_DT'"> REG_DT </when>
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		    ) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			where  RNUM  > #{start} and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="selectSerial" parameterType="java.lang.String" resultType="java.lang.Integer" >
+  		select 
+			NVL(MAX(ITEM_ID), 0)+1
+		from 
+			JCMS_FILE_ITEM
+		where
+			FILE_ID = #{fileId}
+  	</select>
+	
+	<insert id="insert" parameterType="fileItem" >
+		<selectKey keyProperty="itemId" resultType="java.lang.Long" order="BEFORE" >
+	    	select FILE_ITEM_ID_SEQ.NEXTVAL from DUAL
+	  	</selectKey>
+		insert into JCMS_FILE_ITEM (
+			ITEM_ID,
+			FILE_ID,
+			FILE_NM,
+			FILE_EXT,
+			MEDIA_TP,
+			FILE_SIZE,
+			SAVE_PATH,
+			SAVE_FILE_NM,
+			REG_ID,
+			REG_DT
+		) values (
+			#{itemId}
+			, #{fileId,jdbcType=NUMERIC}
+			, #{fileNm}
+			, #{fileExt}
+			, #{mediaTp}
+			, #{fileSize}
+			, #{savePath}
+			, #{saveFileNm}
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+
+	<delete id="delete" parameterType="fileItem">
+		delete from JCMS_FILE_ITEM
+		where 
+			FILE_ID = #{fileId}
+			and ITEM_ID = #{itemId}
+	</delete>
+	
+	<delete id="updateFileId" parameterType="fileItem">
+		update JCMS_FILE_ITEM set
+			FILE_ID = #{fileId}
+		where 
+			ITEM_ID = #{itemId,jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="updateDwnCnt" parameterType="java.lang.Long">
+		update JCMS_FILE_ITEM set
+			DWN_CNT = DWN_CNT+1
+		where
+			ITEM_ID = #{itemId}
+	</update>
+</mapper>

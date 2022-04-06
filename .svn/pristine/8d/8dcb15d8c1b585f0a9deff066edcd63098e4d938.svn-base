@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.front.statistics.mapper.StatisticsMapper">
+		<select id="selectRealTimeDataList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM
+            (SELECT B.SITE_NAME, B.SITE_RPMSNO,
+            B.SITE_ALTOC, B.SITE_DPH, 
+			TO_CHAR(TO_DATE(A.DATA_TIME, 'YYYYMMDDhh24miss'), 'YYYY-MM-DD hh24:mi:ss') AS CH_DATA_TIME
+            , A.* FROM
+            (SELECT * FROM GW_DATA_VALUE
+            WHERE SITE_ID||'%%'||M_SN||'%%'||DATA_TIME IN (SELECT SITE_ID||'%%'||M_SN||'%%'||MAX(DATA_TIME) AS SN FROM GW_DATA_VALUE GROUP BY SITE_ID, M_SN)) A
+            LEFT OUTER JOIN VW_GW_SITE_INFO B
+            ON A.SITE_ID = B.SITE_ID)
+            WHERE 1=1
+            <if test="searchTitle == 'nm'">
+				AND SITE_NAME LIKE '%'||#{searchTxt}||'%'
+			</if>
+			<if test="searchTitle == 'perm'">
+				AND UPPER(SITE_RPMSNO) LIKE '%'||UPPER(#{searchTxt})||'%'
+			</if>
+            ORDER BY SITE_NAME, M_SN
+		</select>
+		
+		<select id="selectObsvname" resultType="egovMap">
+			SELECT DISTINCT SITE_ID, SITE_NAME FROM GW_SITE_INFO
+		</select>
+		
+		<select id="selectSensorNm" parameterType="Map" resultType="egovMap">
+			SELECT DISTINCT 'S'||SUBSTR(USE_PORT,2,2) AS SENSOR_NM, SITE_ID
+			FROM VW_GW_SENSOR_INFO
+			WHERE SITE_ID=#{searchObsvname}
+			ORDER BY SENSOR_NM
+		</select>
+		
+		<select id="selectAvgList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM(
+			<if test="searchStatistics == 1">
+			SELECT SUBSTR(DATA_TIME,1,4)||'-'||SUBSTR(DATA_TIME,5,2)||'-'||SUBSTR(DATA_TIME,7,2)||' '||SUBSTR(DATA_TIME,9,2)||':'||SUBSTR(DATA_TIME,11,2)||':'||SUBSTR(DATA_TIME,13,2) AS TIME,
+			M_SN AS SENSOR, ROUND(EL,2) AS EL, ROUND(GL,2) AS GL, ROUND(PRESSR,2) AS PRESSR, ROUND(TEMP,2) AS TEMP, ROUND(EC,0) AS EC, ROUND(BARO,0) AS BARO, ROUND(BATT,1) AS BATT
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1)
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			ORDER BY TIME DESC
+			</if>
+			
+			<if test="searchStatistics == 2">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2)||' '||SUBSTR(TIME,9,2) AS TIME, SENSOR, EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT,
+            ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),2) AS CL, ROUND(AVG(W_BARO),2) AS W_BARO, ROUND(AVG(RAINFALL),2) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,10) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL 
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			
+			<if test="searchStatistics == 3">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2) AS TIME, SENSOR, EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT,
+			ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),2) AS CL, ROUND(AVG(W_BARO),2) AS W_BARO, ROUND(AVG(RAINFALL),2) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,8) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL 
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			
+			<if test="searchStatistics == 4">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2) AS TIME, SENSOR, EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT,
+			ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),2) AS CL, ROUND(AVG(W_BARO),2) AS W_BARO, ROUND(AVG(RAINFALL),2) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,6) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL  
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			)
+		</select>
+		
+		<select id="selectAvgListCnt" parameterType="Map" resultType="integer">
+			SELECT COUNT(*) FROM(
+			<if test="searchStatistics == 1">
+			SELECT SUBSTR(DATA_TIME,1,4)||'-'||SUBSTR(DATA_TIME,5,2)||'-'||SUBSTR(DATA_TIME,7,2)||' '||SUBSTR(DATA_TIME,9,2)||':'||SUBSTR(DATA_TIME,11,2)||':'||SUBSTR(DATA_TIME,13,2) AS TIME,
+			M_SN AS SENSOR, ROUND(GL,2) AS GL, ROUND(PRESSR,2) AS PRESSR, ROUND(TEMP,2) AS TEMP, ROUND(EC,0) AS EC, ROUND(BARO,0) AS BARO, ROUND(BATT,1) AS BATT
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1)
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			ORDER BY TIME DESC
+			</if>
+			
+			<if test="searchStatistics == 2">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2)||' '||SUBSTR(TIME,9,2) AS TIME, SENSOR, GL, PRESSR, TEMP, EC, BARO, BATT FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,10) AS TIME, M_SN, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			
+			<if test="searchStatistics == 3">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2) AS TIME, SENSOR, GL, PRESSR, TEMP, EC, BARO, BATT FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,8) AS TIME, M_SN, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			
+			<if test="searchStatistics == 4">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2) AS TIME, SENSOR, GL, PRESSR, TEMP, EC, BARO, BATT FROM 
+			(SELECT TIME, #{sensorNm} AS SENSOR, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,6) AS TIME, M_SN, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID
+			FROM GW_DATA_VALUE
+			WHERE M_SN = #{sensorNm} AND SITE_ID = #{searchObsvname}
+			AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY TIME ORDER BY TIME DESC)
+			</if>
+			)
+		</select>
+		
+		<select id="selectGraphList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM (			
+			<if test="searchStatistics == 1">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2)||'T'||SUBSTR(TIME,9,2)||':00:00Z' AS TIME, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL FROM 
+			(SELECT TIME, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT, SITE_ID,
+            ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),0) AS CL, ROUND(AVG(W_BARO),0) AS W_BARO, ROUND(AVG(RAINFALL),1) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,10) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, A.SITE_ID, SITE_NAME, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL 
+			FROM (SELECT A.*, SITE_ID||','||M_SN AS SITE_SENSOR_KEY FROM GW_DATA_VALUE A) A
+			LEFT JOIN GW_SITE_INFO B
+			ON A.SITE_ID = B.SITE_ID
+			WHERE SITE_SENSOR_KEY IN
+			<foreach item="item" index="index" collection="siteSensorKey"
+		      open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		  	AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY SITE_ID, TIME ORDER BY TIME)
+			</if>
+			
+			<if test="searchStatistics == 2">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2)||'-'||SUBSTR(TIME,7,2) AS TIME, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID FROM 
+			(SELECT TIME, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT, SITE_ID,
+			ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),0) AS CL, ROUND(AVG(W_BARO),0) AS W_BARO, ROUND(AVG(RAINFALL),1) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,8) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, A.SITE_ID, SITE_NAME, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL
+			FROM (SELECT A.*, SITE_ID||','||M_SN AS SITE_SENSOR_KEY FROM GW_DATA_VALUE A) A
+			LEFT JOIN GW_SITE_INFO B
+			ON A.SITE_ID = B.SITE_ID
+			WHERE SITE_SENSOR_KEY IN
+			<foreach item="item" index="index" collection="siteSensorKey"
+		      open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		  	AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY SITE_ID, TIME ORDER BY TIME)
+			</if>
+			
+			<if test="searchStatistics == 3">
+			SELECT SUBSTR(TIME,1,4)||'-'||SUBSTR(TIME,5,2) AS TIME, EL, GL, PRESSR, TEMP, EC, BARO, BATT, SITE_ID FROM 
+			(SELECT TIME, ROUND(AVG(EL),2) AS EL, ROUND(AVG(GL),2) AS GL, ROUND(AVG(PRESSR),2) AS PRESSR, ROUND(AVG(TEMP),2) AS TEMP, ROUND(AVG(EC),0) AS EC, ROUND(AVG(BARO),0) AS BARO, ROUND(AVG(BATT),1) AS BATT, SITE_ID,
+			ROUND(AVG(NO3),2) AS NO3, ROUND(AVG(NH4),2) AS NH4, ROUND(AVG(PH),2) AS PH, ROUND(AVG(NH3),2) AS NH3, ROUND(AVG(CL),0) AS CL, ROUND(AVG(W_BARO),0) AS W_BARO, ROUND(AVG(RAINFALL),1) AS RAINFALL
+			FROM
+			(SELECT SUBSTR(DATA_TIME,1,6) AS TIME, M_SN, EL, GL, PRESSR, TEMP, EC, BARO, BATT, A.SITE_ID, SITE_NAME, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL 
+			FROM (SELECT A.*, SITE_ID||','||M_SN AS SITE_SENSOR_KEY FROM GW_DATA_VALUE A) A
+			LEFT JOIN GW_SITE_INFO B
+			ON A.SITE_ID = B.SITE_ID
+			WHERE SITE_SENSOR_KEY IN
+			<foreach item="item" index="index" collection="siteSensorKey"
+		      open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		  	AND (DATA_CHG_TYPE is null OR DATA_CHG_TYPE != 'DEL')
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{fDate},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{lDate},'[^[:digit:]]'))+1))
+			GROUP BY SITE_ID, TIME ORDER BY TIME)
+			</if>
+			)
+		</select>
+		
+		
+		
+		
+		<select id="selectUpdateList" parameterType="Map" resultType="egovMap">
+			SELECT SUBSTR(DATA_TIME,1,4)||'-'||SUBSTR(DATA_TIME,5,2)||'-'||SUBSTR(DATA_TIME,7,2)||' '||SUBSTR(DATA_TIME,9,2)||':'||SUBSTR(DATA_TIME,11,2)||':'||SUBSTR(DATA_TIME,13,2) AS TIME,
+			EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, DATA_ID, DATA_CHG_TYPE 
+			FROM
+			(SELECT DATA_TIME, EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, DATA_ID, DATA_CHG_TYPE
+			FROM GW_DATA_VALUE
+			WHERE SITE_ID = #{searchObsvname} AND M_SN = #{searchSsname} 
+			AND DATA_TIME BETWEEN REGEXP_REPLACE(#{first},'[^[:digit:]]') AND TO_CHAR(TO_NUMBER(REGEXP_REPLACE(#{last},'[^[:digit:]]'))+1)
+			AND (DATA_CHG_TYPE != 'DEL' OR DATA_CHG_TYPE is null) 
+			) ORDER BY TIME
+		</select>
+		
+		<update id="resetList" parameterType="Map">
+			UPDATE GW_DATA_VALUE A
+			SET A.EL = (SELECT B.EL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),		
+				A.GL = (SELECT B.GL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.EC = (SELECT B.EC
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.TEMP = (SELECT B.TEMP
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.PRESSR = (SELECT B.PRESSR
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.BARO = (SELECT B.BARO
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.BATT = (SELECT B.BATT
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+                A.NO3 = (SELECT B.NO3
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),		
+				A.NH4 = (SELECT B.NH4
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.PH = (SELECT B.PH
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.NH3 = (SELECT B.NH3
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.CL = (SELECT B.CL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.W_BARO = (SELECT B.W_BARO
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.RAINFALL = (SELECT B.RAINFALL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.DATA_CHG_TYPE = 'ORG'
+			WHERE A.DATA_ID = #{sn}
+		</update>
+		
+		<select id="changeYnList" parameterType="Map" resultType="egovMap">
+			SELECT EL, GL, PRESSR, TEMP, EC, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL FROM GW_DATA_VALUE_ORG
+			WHERE DATA_TIME = REGEXP_REPLACE(#{time},'[^[:digit:]]') AND M_SN = #{searchSsname} AND SITE_ID = #{searchObsvname}
+		</select>
+		
+		<update id="updateList" parameterType="Map">
+			UPDATE GW_DATA_VALUE
+			SET
+			EL = #{el}, GL = #{gl}, PRESSR = #{pressr}, TEMP = #{temp}, EC = #{ec}, BARO = #{baro}, BATT = #{batt},
+			NO3 = #{no3}, NH4 = #{nh4}, PH = #{ph}, NH3 = #{nh3}, CL = #{cl}, W_BARO = #{wBaro}, RAINFALL = #{rainfall}, DATA_CHG_TYPE = 'CHG' 
+			WHERE
+			DATA_ID = #{sn}
+		</update>
+		
+		<update id="deleteList" parameterType="Map">
+			UPDATE GW_DATA_VALUE
+			SET 
+			DATA_CHG_TYPE = 'DEL'
+			WHERE
+			DATA_ID = #{sn}
+		</update>
+		
+		<update id="groupUpdateList" parameterType="Map">
+			UPDATE GW_DATA_VALUE
+			SET
+			<if test="element == 'EL'">
+				EL = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'GL'">
+				GL = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'Pressure'">
+            	PRESSR = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'Temp'">
+            	TEMP = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'EC'">
+            	EC = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'Barometa'">
+            	BARO = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'Battery'">
+            	BATT = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'NO3'">
+				NO3 = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'NH4'">
+				NH4 = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'PH'">
+            	PH = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'NH3'">
+            	NH3 = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'CL'">
+            	CL = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'W_BARO'">
+            	W_BARO = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+            <if test="element == 'Rainfall'">
+            	RAINFALL = #{elementValue}, DATA_CHG_TYPE = 'CHG'
+            </if>
+			WHERE DATA_ID IN
+            <foreach item="item" index="index" collection="arrayCheck" open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		</update>
+		
+		<update id="groupResetList" parameterType="Map">
+			UPDATE GW_DATA_VALUE A
+			SET A.EL = (SELECT B.EL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+				A.GL = (SELECT B.GL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.EC = (SELECT B.EC
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.TEMP = (SELECT B.TEMP 
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.PRESSR = (SELECT B.PRESSR
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.BARO = (SELECT B.BARO
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.BATT = (SELECT B.BATT
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.NO3 = (SELECT B.NO3
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),		
+				A.NH4 = (SELECT B.NH4
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.PH = (SELECT B.PH
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.NH3 = (SELECT B.NH3
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.CL = (SELECT B.CL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.W_BARO = (SELECT B.W_BARO
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.RAINFALL = (SELECT B.RAINFALL
+			            FROM GW_DATA_VALUE_ORG B
+			            WHERE A.SITE_ID = B.SITE_ID AND A.M_SN = B.M_SN AND A.DATA_TIME = B.DATA_TIME),
+			    A.DATA_CHG_TYPE = 'ORG'
+			WHERE A.DATA_ID IN
+			<foreach item="item" index="index" collection="arrayCheck" open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		</update>
+		
+		<update id="groupDeleteList" parameterType="Map">
+			UPDATE GW_DATA_VALUE
+			SET DATA_CHG_TYPE = 'DEL'
+			WHERE DATA_ID IN
+			<foreach item="item" index="index" collection="arrayCheck" open="(" separator="," close=")">
+		        #{item}
+		  	</foreach>
+		</update>
+		
+		<select id="selectMapChartGwDataList" parameterType="Map" resultType="egovMap">
+			SELECT * FROM
+			(select TO_CHAR(TO_DATE(SUBSTR(DATA_TIME, 0, 8)), 'YYYY-MM-DD') AS DATA_TIME, AVG(GL) AS GL from gw_data_value
+			where site_id = #{siteId}
+			and SUBSTR(DATA_TIME, 0, 8) <![CDATA[<=]]> to_char(sysdate, 'YYYYMMDD')
+            and SUBSTR(DATA_TIME, 0, 8) <![CDATA[>]]> to_char(ADD_MONTHS(SYSDATE, -1), 'YYYYMMDD')
+			group by SUBSTR(DATA_TIME, 0, 8))
+			ORDER BY DATA_TIME
+		</select>
+		
+		<select id="selectMapChartGwDataMaxMin" parameterType="Map" resultType="egovMap">
+			select DECODE(max(gl), NULL, 0, (max(gl)+3)) as MAX_GL, DECODE(min(gl), NULL, 0, (min(gl)-3)) as MIN_GL from
+			(select TO_CHAR(TO_DATE(SUBSTR(DATA_TIME, 0, 8)), 'YYYY-MM-DD') AS DATA_TIME, AVG(GL) AS GL from gw_data_value
+			where site_id = #{siteId}
+			and SUBSTR(DATA_TIME, 0, 8) <![CDATA[<=]]> to_char(sysdate, 'YYYYMMDD')
+            and SUBSTR(DATA_TIME, 0, 8) <![CDATA[>]]> to_char(ADD_MONTHS(SYSDATE, -1), 'YYYYMMDD')
+			group by SUBSTR(DATA_TIME, 0, 8))
+		</select>
+		
+		<select id="selectSeqSiteData" parameterType="Map" resultType="egovMap">
+			SELECT * FROM VW_GW_SITE_INFO
+			WHERE SITE_ID = (SELECT DECODE(MIN(SITE_ID), NULL, 0, MIN(SITE_ID)) AS SITE_ID FROM GW_SITE_INFO WHERE SITE_ID > #{seqSiteId})
+		</select>
+		
+		<select id="selectSituationDataGrp" resultType="egovMap">
+			SELECT 
+			ALL_SITE_CONT,
+			(ALL_SITE_CONT - ERROR_TYPE1 - ERROR_TYPE2 - ERROR_TYPE3) AS NON_ERROR,
+			ERROR_TYPE1, <!-- 센서미수신 -->
+			ERROR_TYPE2, <!-- 수위이상 -->
+			ERROR_TYPE3 <!-- 통신이상 -->
+			FROM 
+			(SELECT 
+			(SELECT COUNT(*) AS NON_ERROR FROM VW_GW_SITE_INFO
+			WHERE USE_ST = 'Y') AS ALL_SITE_CONT,
+			DECODE(ERROR_TYPE1, NULL, 0, ERROR_TYPE1) AS ERROR_TYPE1,
+			DECODE(ERROR_TYPE2, NULL, 0, ERROR_TYPE2) AS ERROR_TYPE2,
+			DECODE(ERROR_TYPE3, NULL, 0, ERROR_TYPE3) AS ERROR_TYPE3
+			FROM
+			(SELECT
+			SUM(ERROR_TYPE1) AS ERROR_TYPE1, SUM(ERROR_TYPE2) ERROR_TYPE2, SUM(ERROR_TYPE3) ERROR_TYPE3 FROM
+			(SELECT 
+			DECODE(ERROR_TYPE, 1, 1, 0) AS ERROR_TYPE1, 
+			DECODE(ERROR_TYPE, 2, 1, 0) AS ERROR_TYPE2, 
+			DECODE(ERROR_TYPE, 3, 1, 0) AS ERROR_TYPE3 
+			FROM
+			(SELECT SITE_ID, MAX(ERROR_TYPE) AS ERROR_TYPE FROM
+			(<!-- SELECT 181 AS SITE_ID, '2' AS ERROR_TYPE FROM DUAL
+			UNION ALL -->
+			select SITE_ID, '1' AS ERROR_TYPE from gw_data_value
+			WHERE DATA_TIME LIKE TO_CHAR(SYSDATE, 'YYYYMMDDHH24')||'%'
+			AND(
+			GL = 0 OR
+			EL = 0 OR
+			EC = 0 OR
+			TEMP = 0 OR
+			PRESSR = 0 OR
+			BARO = 0 OR
+			BATT = 0 OR
+			NO3 = 0 OR
+			NH4 = 0 OR
+			PH = 0 OR
+			NH3 = 0 OR
+			CL = 0 OR
+			W_BARO = 0 OR
+			RAINFALL = 0)
+			GROUP BY SITE_ID
+			UNION ALL
+			SELECT SITE_ID, '3' AS ERROR_TYPE FROM VW_GW_SITE_INFO
+			WHERE SITE_ID NOT IN (SELECT SITE_ID from gw_data_value
+			where USE_ST = 'Y' 
+			AND substr(data_time,0,10) <![CDATA[>=]]> to_char(sysdate-6/24,'YYYYMMDDHH24')))
+			GROUP BY SITE_ID))))
+		</select>
+		
+		<select id="selectPumpUseData" resultType="egovMap">
+			SELECT '가동중' AS PUMP_USE_YN, '100' AS PUMP_USAGE  FROM DUAL
+		</select>
+</mapper>

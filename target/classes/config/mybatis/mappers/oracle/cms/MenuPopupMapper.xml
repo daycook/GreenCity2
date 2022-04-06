@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.menu.mapper.MenuPopupMapper">
+	
+	<select id="count" parameterType="cmsMenuPopupSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(POPUP_ID)
+		from
+			JCMS_MENU_POPUP
+		where
+	   		1 = 1
+		<if test="!empty(menuId)" > and MENU_ID = #{menuId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="cmsMenuPopupSearch" resultType="cmsMenuPopup">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				MENU_ID,
+				POPUP_ID
+			from		
+				JCMS_MENU_POPUP
+			where
+				1 = 1
+		<if test="!empty(menuId)" > and MENU_ID = #{menuId} </if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	            <when test="sort == 'MENU_ID'"> MENU_ID </when>
+	            <when test="sort == 'POPUP_ID'"> POPUP_ID </when> 
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		    ) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<insert id="insert" parameterType="cmsMenuPopup">
+		insert into JCMS_MENU_POPUP (
+			POPUP_ID,
+			MENU_ID
+		) values (
+			#{popupId}
+			, #{menuId}
+		)
+	</insert>
+	
+	<delete id="delete" parameterType="cmsMenuPopup">
+		delete from JCMS_MENU_POPUP 
+		where 
+			MENU_ID = #{menuId}
+	</delete>
+</mapper>

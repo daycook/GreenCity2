@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.jcms.conts.Research.mapper.QstSmMapper">
+<sql id="tb">JCMS_QST_SM</sql>
+	<sql id="s"> select * </sql>	          
+ 	<sql id="sl"> select RCHSM_SEQ, QST_SEQ, QIT_SEQ, QSTSM_VAL </sql>
+	<sql id="f"> from <include refid="tb"/> </sql>	
+	<sql id="ws">
+		<where>
+			<if test="!empty(rchsmSeq)"> and RCHSM_SEQ = #{rchsmSeq}</if>
+			<if test="!empty(qstSeq)"> and QST_SEQ = #{qstSeq}</if>
+			<if test="!empty(qitSeq)"> and QIT_SEQ = #{qitSeq}</if>
+		</where>
+	</sql>
+	<sql id="wl">
+		<where>
+			<if test="!empty(rchsmSeq)"> and RCHSM_SEQ = #{rchsmSeq}</if>
+			<if test="!empty(qstSeq)"> and QST_SEQ = #{qstSeq}</if>
+			<if test="!empty(qitSeq)"> and QIT_SEQ = #{qitSeq}</if>
+			<include refid="BaseSql.BaseWhere"/>
+		</where>
+	</sql>
+	<sql id="ord">
+	    <if test="!empty(sort)">
+			order by			
+	        <choose>  
+	            <when test="sort == 'rchsmSeq'"> RCHSM_SEQ </when>
+	        </choose>
+	        <choose>  
+	            <when test="sort == 'qstSeq'"> QST_SEQ </when>
+	        </choose>
+	        <choose>  
+	            <when test="sort == 'qitSeq'"> QIT_SEQ </when>
+	        </choose>
+	        <if test="!empty(sortOrd)"><choose>
+	    		<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose></if>
+	    </if>
+	    <if test="empty(sort)">
+	    	order by RCHSM_SEQ
+	    </if>
+	</sql>
+	
+	<select id="select" parameterType="qstSm" resultType="qstSm">
+		<include refid="s"/>
+		<include refid="f"/>
+		<include refid="ws"/>
+	</select>
+
+	<select id="selectList" parameterType="qstSm" resultType="qstSm">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			<include refid="sl"/>
+			<include refid="f"/>
+			<include refid="wl"/>
+			<include refid="ord"/>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="qstSm" resultType="Integer">
+		select COUNT(*) 
+		<include refid="f"/>
+		<include refid="wl"/>
+	</select>
+
+	<insert id="insert" parameterType="qstSm">
+		insert into <include refid="tb"/> 
+			( RCHSM_SEQ, QST_SEQ, QIT_SEQ, QSTSM_VAL			
+			 <include refid="BaseSql.InRegRecStPrm"/>)
+		values 
+			( #{rchsmSeq}, #{qstSeq}, #{qitSeq}, #{qstsmVal}			
+			 <include refid="BaseSql.InRegRecStVal"/>)
+	</insert>
+
+	<update id="update" parameterType="qstSm">
+		update <include refid="tb"/> set
+			QSTSM_VAL = #{qstsmVal}						
+			<include refid="BaseSql.Update"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="delete" parameterType="qstSm">
+		update <include refid="tb"/> set		
+			<include refid="BaseSql.Delete"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="remove" parameterType="qstSm">
+		delete from <include refid="tb"/> 
+		<include refid="ws"/>
+	</update>
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.framework.cd.mapper.CdMapper">
+
+	<select id="select" parameterType="cd" resultType="cd">
+		select
+			CD_ID, CD_CLS_ID, CD_NM, CD_DESC, USE_ST, REG_ID, REG_DT, UPD_ID, UPD_DT
+		from
+			JCMS_CD
+		where 
+			CD_ID = #{cdId} and
+			DEL_DT IS NULL	  	
+	</select>
+	
+	<select id="selectList" parameterType="cd" resultType="cd">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select
+				CD_ID, CD_CLS_ID, CD_NM, CD_DESC, USE_ST, REG_ID, REG_DT, UPD_ID, UPD_DT
+			from
+				JCMS_CD
+			where 
+				DEL_DT IS NULL
+		<if test="!empty(cdClsId)"> and CD_CLS_ID = #{cdClsId} </if>
+		<if test="!empty(useSt)"> and USE_ST = #{useSt} </if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	            <when test="sort == 'CD_ID'"> CD_ID </when>
+	            <when test="sort == 'CD_CLS_ID'"> CD_CLS_ID </when> 
+	            <when test="sort == 'CD_NM'"> CD_NM </when>
+	            <when test="sort == 'CD_DESC'"> CD_DESC </when> 
+	            <when test="sort == 'USE_ST'"> USE_ST </when> 
+	            <when test="sort == 'REG_DT'"> REG_DT </when>
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		      	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+		<if test="pagingYn == true" >
+		    <![CDATA[
+				 where  RNUM  > #{start}
+				   and  RNUM <= #{start} + #{length}
+			]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="cd" resultType="java.lang.Integer">
+		select
+			COUNT(CD_ID)
+		from
+			JCMS_CD
+		where
+			DEL_DT IS NULL and
+			CD_CLS_ID = #{cdClsId}
+		<if test="!empty(useSt)"> and USE_ST = #{useSt} </if>
+	</select>
+	
+	<select id="existCount" parameterType="cd" resultType="java.lang.Integer">
+		select
+			COUNT(CD_ID)
+		from
+			JCMS_CD
+		where
+			DEL_DT IS NULL and
+			(CD_ID = #{cdId} OR CD_NM = #{cdNm})
+	</select>
+	
+	<insert id="insert" parameterType="cd">
+		insert into JCMS_CD (
+			CD_ID,  
+			CD_CLS_ID,  
+			CD_NM,
+			CD_DESC,  
+			USE_ST,  
+			REG_ID,
+			REG_DT  
+		) values (
+			#{cdId},	
+			#{cdClsId},	
+			#{cdNm},	
+			#{cdDesc,jdbcType=VARCHAR},	
+			#{useSt},	
+			#{regId},	
+			SYSDATE
+		)
+	</insert>
+	
+	<update id="update" parameterType="cd">
+		update JCMS_CD set
+			CD_NM = #{cdNm},
+			CD_DESC = #{cdDesc,jdbcType=VARCHAR},
+			USE_ST =  #{useSt},
+			UPD_ID = #{updId},
+			UPD_DT = SYSDATE
+		where
+			CD_ID = #{cdId,jdbcType=VARCHAR} and 
+			DEL_DT IS NULL
+	</update>
+	
+	<delete id="delete" parameterType="cd">
+		delete from JCMS_CD 
+		where
+			CD_ID = #{cdId} and
+			CD_CLS_ID = #{cdClsId}
+	</delete>
+</mapper>

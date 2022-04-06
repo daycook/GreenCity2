@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.front.common.mapper.CommonMapper">
+	<insert id="insertGwDataOrg">
+		INSERT INTO GW_DATA_VALUE_ORG(DATA_ORG_ID, SITE_ID, DATA_TIME, M_SN, GL, EL, EC, TEMP, PRESSR, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, REG_ID, REG_DT)
+		SELECT DATA_ORG_ID_SEQ.NEXTVAL, B.SITE_ID, A.DATA_TIME, M_SN, A.GL, A.EL, A.SCOND, A.W_TEMP, A.W_PRESS, A.W_BARO, A.BATTERY, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, '1', SYSDATE FROM
+		VW_LINK_INSERT_GW_DATA_VALUE A
+		LEFT OUTER JOIN GW_SITE_INFO B
+		ON A.SITE_CODE = B.SITE_RPMSNO
+	</insert>
+	
+	<insert id="insertGwDataValue">
+		INSERT INTO GW_DATA_VALUE(DATA_ID, SITE_ID, DATA_TIME, M_SN, GL, EL, EC, TEMP, PRESSR, BARO, BATT, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, REG_ID, REG_DT)
+		SELECT DATA_ID_SEQ.NEXTVAL, B.SITE_ID, A.DATA_TIME, M_SN, A.GL, A.EL, A.SCOND, A.W_TEMP, A.W_PRESS, A.W_BARO, A.BATTERY, NO3, NH4, PH, NH3, CL, W_BARO, RAINFALL, '1', SYSDATE FROM
+		VW_LINK_INSERT_GW_DATA_VALUE A
+		LEFT OUTER JOIN GW_SITE_INFO B
+		ON A.SITE_CODE = B.SITE_RPMSNO
+	</insert>
+	
+	<select id="getCodeList" parameterType="Map" resultType="egovMap">
+		SELECT * FROM JCMS_CD_DTL
+		WHERE CD_ID = #{cdId}
+	</select>
+</mapper>

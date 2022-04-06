@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="cacheEnabled" value="true" />
+		<setting name="lazyLoadingEnabled" value="true" />
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+		<setting name="defaultExecutorType" value="SIMPLE" />
+		<setting name="defaultStatementTimeout" value="25" />
+		<setting name="localCacheScope" value="SESSION" />
+		<setting name="jdbcTypeForNull" value="NULL" />
+	</settings>
+	<typeAliases>
+		<typeAlias alias="bod" type="net.jcms.conts.bod.model.Bod" />
+		<typeAlias alias="bodSearch" type="net.jcms.conts.bod.model.BodSearch" />
+		<typeAlias alias="bodArti" type="net.jcms.conts.bod.model.BodArti" />
+		<typeAlias alias="bodArtiSearch" type="net.jcms.conts.bod.model.BodArtiSearch" />
+		<typeAlias alias="bodCmnt" type="net.jcms.conts.bod.model.BodCmnt" />
+		<typeAlias alias="bodCmntSearch" type="net.jcms.conts.bod.model.BodCmntSearch" />
+		<typeAlias alias="bodRole" type="net.jcms.conts.bod.model.BodRole" />
+		<typeAlias alias="lang" type="net.jcms.conts.lang.model.Lang" />
+		<typeAlias alias="langSearch" type="net.jcms.conts.lang.model.LangSearch" />
+		<typeAlias alias="site" type="net.jcms.conts.site.model.Site" />
+		<typeAlias alias="siteSearch" type="net.jcms.conts.site.model.SiteSearch" />
+		<typeAlias alias="cmsMenu" type="net.jcms.conts.menu.model.Menu" />
+		<typeAlias alias="cmsMenuSearch" type="net.jcms.conts.menu.model.MenuSearch" />
+		<typeAlias alias="cmsMenuPopup" type="net.jcms.conts.menu.model.MenuPopup" />
+		<typeAlias alias="cmsMenuPopupSearch" type="net.jcms.conts.menu.model.MenuPopupSearch" />
+		<typeAlias alias="cmsMenuConnHist" type="net.jcms.conts.menu.model.MenuConnHist" />
+		<typeAlias alias="cmsMenuConnHistSearch" type="net.jcms.conts.menu.model.MenuConnHistSearch" />
+		<typeAlias alias="cmsMenuSatis" type="net.jcms.conts.menu.model.MenuSatis" />
+		<typeAlias alias="cmsMenuSatisSearch" type="net.jcms.conts.menu.model.MenuSatisSearch" />
+		<typeAlias alias="cmsMenuCont" type="net.jcms.conts.menu.model.MenuCont" />
+		<typeAlias alias="cmsMenuContSearch" type="net.jcms.conts.menu.model.MenuContSearch" />
+		<typeAlias alias="cont" type="net.jcms.conts.cont.model.Cont" />
+		<typeAlias alias="contSearch" type="net.jcms.conts.cont.model.ContSearch" />
+		<typeAlias alias="contItem" type="net.jcms.conts.cont.model.ContItem" />
+		<typeAlias alias="contItemSearch" type="net.jcms.conts.cont.model.ContItemSearch" />
+		<typeAlias alias="contItemHist" type="net.jcms.conts.cont.model.ContItemHist" />
+		<typeAlias alias="contItemHistSearch" type="net.jcms.conts.cont.model.ContItemHistSearch" />
+		<typeAlias alias="contBkmak" type="net.jcms.conts.cont.model.ContBkmak" />
+		<typeAlias alias="plan" type="net.jcms.conts.plan.model.Plan" />
+		<typeAlias alias="planSearch" type="net.jcms.conts.plan.model.PlanSearch" />
+		<typeAlias alias="popup" type="net.jcms.conts.popup.model.Popup" />
+		<typeAlias alias="popupSearch" type="net.jcms.conts.popup.model.PopupSearch" />
+		<typeAlias alias="banner" type="net.jcms.conts.banner.model.Banner" />
+		<typeAlias alias="bannerSearch" type="net.jcms.conts.banner.model.BannerSearch" />
+		<typeAlias alias="media" type="net.jcms.conts.media.model.Media" />
+		<typeAlias alias="mediaSearch" type="net.jcms.conts.media.model.MediaSearch" />
+		
+		<typeAlias alias="user" type="net.jcms.framework.security.model.User" />
+		<typeAlias alias="userSearch" type="net.jcms.framework.security.model.UserSearch" />
+		<typeAlias alias="role" type="net.jcms.framework.security.model.Role"/>
+		<typeAlias alias="userRole" type="net.jcms.framework.security.model.UserRole"/>
+		<typeAlias alias="scurRsc" type="net.jcms.framework.security.model.ScurRsc" />
+		<typeAlias alias="scurRscRole" type="net.jcms.framework.security.model.ScurRscRole" />
+		<typeAlias alias="loginLog" type="net.jcms.framework.security.model.LoginLog" />
+		<typeAlias alias="loginLogSearch" type="net.jcms.framework.security.model.LoginLogSearch" />
+		<typeAlias alias="menu" type="net.jcms.framework.menu.model.Menu" />
+		<typeAlias alias="menuSearch" type="net.jcms.framework.menu.model.MenuSearch" />
+		<typeAlias alias="menuRole" type="net.jcms.framework.menu.model.MenuRole" />
+		<typeAlias alias="menuRoleSearch" type="net.jcms.framework.menu.model.MenuRoleSearch" />
+		<typeAlias alias="pgm" type="net.jcms.framework.pgm.model.Pgm" />
+		<typeAlias alias="pgmSearch" type="net.jcms.framework.pgm.model.PgmSearch" />
+		<typeAlias alias="cd" type="net.jcms.framework.cd.model.Cd" />
+		<typeAlias alias="cdCls" type="net.jcms.framework.cd.model.CdCls" />
+		<typeAlias alias="cdDtl" type="net.jcms.framework.cd.model.CdDtl" />
+		<typeAlias alias="file" type="net.jcms.framework.file.model.FileInfo" />
+		<typeAlias alias="fileSearch" type="net.jcms.framework.file.model.FileSearch" />
+		<typeAlias alias="fileItem" type="net.jcms.framework.file.model.FileItem" />
+		<typeAlias alias="fileItemSearch" type="net.jcms.framework.file.model.FileItemSearch" />
+		<typeAlias alias="webLog" type="net.jcms.framework.weblog.model.WebLog" />
+		<typeAlias alias="webLogSearch" type="net.jcms.framework.weblog.model.WebLogSearch" />
+		<typeAlias alias="Research" type="net.jcms.conts.Research.model.Research" />
+		<typeAlias alias="qstSm" type="net.jcms.conts.Research.model.QstSm" />
+		<typeAlias alias="answerFill" type="net.jcms.conts.Research.model.AnswerFill" />
+		<typeAlias alias="ResearchQuest" type="net.jcms.conts.Research.model.ResearchQuest" />
+		<typeAlias alias="rchSm" type="net.jcms.conts.Research.model.RchSm" />
+		<typeAlias alias="ResearchAnswer" type="net.jcms.conts.Research.model.ResearchAnswer" />
+		<typeAlias alias="QstItem" type="net.jcms.conts.Research.model.QstItem" />
+		
+
+		<!-- front관련 -->
+		<typeAlias alias="front" type="net.jcms.front.front.model.Front" />
+		<typeAlias alias="frontSearch" type="net.jcms.front.front.model.FrontSearch" />
+		
+		<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	</typeAliases>
+</configuration>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.Research.mapper.ResearchAnswerMapper">
+	
+	<sql id="tb">JCMS_RCH_ANSWER</sql>
+	<sql id="s"> select * </sql>	          
+ 	<sql id="sl"> select RANS_SEQ, RCHSM_SEQ, RANS_DT  </sql>
+	<sql id="f"> from <include refid="tb"/> </sql>	
+	<sql id="ws">
+		<where>
+			and RANS_SEQ = #{ransSeq}
+		</where>
+	</sql>	
+	<sql id="wl">
+		
+	</sql>
+	<sql id="ord">
+	    <if test="!empty(sort)">
+			order by
+	        <choose>  
+	            <when test="sort == 'ransSeq'">RANS_SEQ</when>
+	        </choose>
+	        <if test="!empty(sortOrd)"><choose>
+	    		<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose></if>
+	    </if>
+	</sql>
+	
+		
+	<select id="select" parameterType="ResearchAnswer" resultType="ResearchAnswer">
+		<include refid="s"/>
+		<include refid="f"/>
+		<include refid="ws"/>
+	</select>
+
+	<select id="selectList" parameterType="ResearchAnswer" resultType="ResearchAnswer">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			<include refid="sl"/>
+			<include refid="f"/>
+			<include refid="wl"/>
+			<include refid="ord"/>
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="ResearchAnswer" resultType="Integer">
+		select COUNT(*) 
+		<include refid="f"/>
+		<include refid="wl"/>
+	</select>
+	
+	<select id="getNewSn" parameterType="ResearchAnswer"  resultType="Integer">
+		select SEQ_RCH_SEQ.NEXTVAL from dual
+	</select>
+
+	<insert id="insert" parameterType="ResearchAnswer">
+		insert into <include refid="tb"/> 
+			(
+			RANS_SEQ,
+			RCHSM_SEQ,
+			RANS_DT,
+			REG_ID,
+			REG_DT,
+			REC_ST
+			 <include refid="BaseSql.InRegRecStPrm"/>)
+		values 
+			(
+			RANS_SEQ.NEXTVAL,
+			#{rchsmSeq},
+			SYSDATE,
+			#{regId},
+			SYSDATE,
+			'Y'
+			 <include refid="BaseSql.InRegRecStVal"/>)
+	</insert>
+
+	<update id="update" parameterType="ResearchAnswer">
+		update <include refid="tb"/> set
+			RANS_SEQ = #{ransSeq},
+			RCHSM_SEQ = #{ransDt},
+			RANS_DT= SYSDATE,
+			UPD_ID = #{updId},
+			UPD_DT = SYSDATE
+			<include refid="BaseSql.Update"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="delete" parameterType="ResearchAnswer">
+		update <include refid="tb"/> set		
+			<include refid="BaseSql.Delete"/>
+		<include refid="ws"/>
+	</update>
+
+	<update id="remove" parameterType="ResearchAnswer">
+		delete from <include refid="tb"/> 
+		<include refid="ws"/>
+	</update>
+
+</mapper>

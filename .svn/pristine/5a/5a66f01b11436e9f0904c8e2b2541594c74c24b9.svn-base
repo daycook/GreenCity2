@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.bod.mapper.BodCmntMapper">
+
+	<select id="select" parameterType="bodCmntSearch" resultType="bodCmnt">
+		select	
+			CMNT_ID, ARTI_ID, CMNT_GRP, DEPTH, 
+			CASE 
+				WHEN DEL_DT IS NULL THEN CONT
+				ELSE '삭제된 댓글입니다.'
+				END AS CONT
+			,REG_ID, REG_DT, UPD_ID, UPD_DT , DEL_ID, DEL_DT
+		from		
+			JCMS_BOD_CMNT
+		where
+			1 = 1
+		<if test="cmntId != null" > and CMNT_ID = #{cmntId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="bodCmntSearch" resultType="bodCmnt">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				CMNT_ID, ARTI_ID, CMNT_GRP, DEPTH,
+				CASE 
+					WHEN DEL_DT IS NULL THEN CONT
+					ELSE '삭제된 댓글입니다.'
+					END AS CONT
+				,REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+			from		
+				JCMS_BOD_CMNT
+			where
+				1 = 1
+				and DEL_DT IS NULL
+			<if test="artiId != null" > and ARTI_ID = #{artiId} </if>
+			order by CMNT_GRP DESC, CMNT_ID ASC
+		       	) ALL_LIST
+				where 1 = 1
+				) T
+				)
+	    <if test="pagingYn == true" >
+	   		<![CDATA[			    
+			 where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+			]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="bodCmntSearch" resultType="java.lang.Integer">
+  		select 
+			COUNT(CMNT_ID)
+		from
+			JCMS_BOD_CMNT
+		where
+	   		1 = 1
+		<if test="artiId != null" > and ARTI_ID = #{artiId} </if>
+		<if test="cmntGrp != null" > and CMNT_GRP = #{cmntGrp} </if>
+		<if test="depth != null" > and DEPTH = #{depth} </if>
+	</select>
+
+	<insert id="insert" parameterType="bodCmnt" >
+		<selectKey keyProperty="cmntId" resultType="java.lang.Long" order="BEFORE">
+	    	select CMNT_ID_SEQ.NEXTVAL AS cmntId from DUAL
+	  	</selectKey>
+			insert into JCMS_BOD_CMNT (
+				CMNT_ID
+				, ARTI_ID
+				,CMNT_GRP
+				,DEPTH
+				,CONT
+				,REG_ID
+				,REG_DT
+			) values (
+				#{cmntId}
+				, #{artiId}
+				, #{cmntGrp}
+				, #{depth}
+				, #{cont}
+				, #{regId}
+				, SYSDATE
+			)
+	</insert>
+	
+	<update id="updateCmntGrp" parameterType="bodCmnt">
+		update JCMS_BOD_CMNT set
+			CMNT_GRP = #{cmntGrp}
+		where
+			CMNT_ID = #{cmntId}
+	</update>
+
+	<update id="update" parameterType="bodCmnt">
+		update JCMS_BOD_CMNT set 
+			CONT = #{cont}
+			,UPD_ID = #{updId}
+			,UPD_DT = SYSDATE
+		where 
+			CMNT_ID = #{cmntId}
+	</update>
+	
+	<update id="delete" parameterType="bodCmnt">
+		update JCMS_BOD_CMNT set 
+			DEL_ID = #{delId}
+			,DEL_DT = SYSDATE
+		where 
+			CMNT_ID = #{cmntId}
+	</update>
+</mapper>

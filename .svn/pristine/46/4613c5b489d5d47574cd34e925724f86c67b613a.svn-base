@@ -1,0 +1,296 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<div class="contentWrap">
+	<!-- 일반게시판 -->
+	<div class="baseTableCont">
+		<div class="clearfix">
+			<h3 style="display:inline-block;">${menu.menuNm}</h3>
+			<form id="searchForm" onsubmit="return false">
+				<input type="hidden" id="excelFileName" name="excelFileName">
+				<input type="hidden" id="excelFileDownName" name="excelFileDownName" value="관측소별 검색">
+				
+				<div class="form-group"  style="float:right;">
+					<label style="width:15%;">
+						<span>검색구분 
+							<select id="searchStatistics" name="searchStatistics" class="form-control">
+								<!--<option value="1">원시</option>-->							
+								<option value="2">시평균</option>
+								<option value="3">일평균</option>
+								<option value="4">월평균</option>
+							</select>
+						</span> 
+					</label>
+					<label style="width:35%;">
+						<span>&ensp;관측기간
+							<input type='text' id='fDate' name='fDate' class="datepicker form-control" onchange="fn_alert()" style="width:35%;" readonly>&nbsp;~&nbsp;
+							<input type='text' id='lDate' name='lDate' class="datepicker form-control" onchange="fn_alert()" style="width:35%;" readonly>
+						</span>
+					</label>
+					<label style="width:25%;">
+						<span>관측소명
+							<select id="searchObsvname" name="searchObsvname" class="form-control" onchange="fn_Sensorname()">
+
+							</select>
+						</span>
+					</label>
+					<button class="btn btn-outline-blue" type="button" onclick="fn_select()">&ensp;검색</button>
+					<button class="btn btn-outline-green" type="button" onclick="fn_excel_down()">엑셀다운로드</button>
+				</div>
+				<br><br><br>
+				<div id='tableTab' class='tab' style='display:block; height:40px; background: #efefef;'>센서
+				</div>	
+			</form>
+		</div>
+		<div>
+
+		</div>
+		<div class="">        
+	 		<div>
+				총 게시물 : <strong id="paginationTotalCnt"></strong>
+			</div>
+			<table class="baseTable" summary="번호,제목,작성자,첨부,등록일,조회수 항목입니다." id="datatable">
+				<colgroup>
+					<col width="10%"/>
+					<col width="10%"/>
+					<col width="6%"/>
+					<col width="6%"/>
+					<col width="6%"/>
+					<col width="13%"/>
+					<col width="6%"/>
+					<col width="6%"/>
+				</colgroup>
+				<thead>
+					<tr>
+						<th>날짜</th>
+						<th>센서</th>
+						<th>GL</th>
+						<th>Pressure</th>
+						<th>Temp</th>
+						<th>EC</th>
+						<th>Barometa</th>
+						<th>Battery</th>
+					</tr>
+					
+				</thead>
+				<tbody id='tablebody' style="text-align: center;">
+					
+				</tbody>
+			</table>
+		</div>
+		<div id="insertBtn" style="float:right; margin-top:-74px;">
+			
+		</div>
+		<div>
+			${bod.bodFooter}
+		</div>
+	</div>
+</div>
+<script src="/js/pagination.js"></script>
+<script>
+$(document).ready(function() {
+	fn_Obsvname();
+	fn_Date();
+});
+
+
+//Date 디폴트값 설정 함수
+function fn_Date(){
+	var d = new Date();
+	var s = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#lDate").val(s);
+	
+	var monthOfYear = d.getMonth();
+	d.setMonth(monthOfYear - 1);
+	var f = leadingZeros(d.getFullYear(), 4) + '-' + leadingZeros(d.getMonth() + 1, 2) + '-' + leadingZeros(d.getDate(), 2);
+	$("#fDate").val(f);
+}
+
+function leadingZeros(n, digits) {
+
+    var zero = '';
+    n = n.toString();
+
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
+}
+
+
+//Date 범위 잘못 선택 시 경고창 띄우는 함수
+function fn_alert(){
+	var fDate = $("#fDate").val(); 
+	var lDate = $("#lDate").val();
+
+	if(fDate > lDate){
+		alert("날짜 범위가 잘못되었습니다.");
+	}
+}
+
+//관측소명 불러오기
+function fn_Obsvname(){
+	
+	var formData = $("#searchForm").serialize();
+	$('#searchObsvname').empty();
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectObsvname.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			var ob = data.resultlist;
+			var obl = ob.length;
+			var html = "";
+			
+			for(var i=0; i<obl; i++){
+				html += '<option value="';
+				html += ob[i].siteId;
+				html += '" id = "obsvname' + (i+1);
+				html += '" name = "obsvname' + (i+1);
+				html += '">' + ob[i].siteName + '</option>';
+			}
+			
+			$('#searchObsvname').append(html);
+			fn_Sensorname();
+		}
+	})
+	
+}
+
+
+//관측소 별 센서버튼 불러오기
+function fn_Sensorname(){
+	
+	$('#tableTab').empty();
+	var formData = $("#searchForm").serialize();
+	var sen = 1;
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectSensorList.json'/>",
+		type : "POST",
+		data : formData,
+		dataType : "json",
+		success : function(data){
+			var ss = data.resultlist;
+			var ssl = ss.length;
+			var html = '';
+			
+			for(var i=0; i<ssl; i++){
+				html += '<button class="btn btn-outline-blue" type="button" onclick="';
+				html += 'fn_tabChange('+(i+1);
+				html += ')" id="sensorNm';
+				html += (i+1)+'" name="sensorNm';
+				html += (i+1)+'" value="';
+				html +=	ss[i].sensorNm+'">';
+				html += ss[i].sensorNm;
+				html += '</button>';
+			}
+			
+			$('#tableTab').append(html);
+			
+		}
+	})
+}
+
+
+//selectlist + 총 게시물Count
+function selectAvgList(sn){
+	
+	
+	$(".loading").show();
+
+	var sensorNm = $("#sensorNm"+sn).val();
+	var searchStatistics = $("#searchStatistics").val();
+	var searchObsvname = $("#searchObsvname").val();
+	var fDate = $("#fDate").val(); 
+	var lDate = $("#lDate").val();
+	
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectAvgList.json'/>",
+		type : "POST",
+		data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "sensorNm":sensorNm, "fDate":fDate, "lDate":lDate},
+		dataType : "json",
+		success : function(result){
+			var html = "";
+			var html2 = "";
+			
+			var list = result.DataList;
+			var leng = list.length;
+			var cnt = result.Count;
+			
+			for(var i=0; i<leng; i++){
+				var data = list[i]
+				
+				html += "<tr>";
+				html += "<td>"+data.time+"</td>";
+				html += "<td id='nSensor"+(i+1);
+				html += "' name='nSensor"+(i+1);
+				html += "'>"+data.sensor+"</td>";
+				html += "<td>"+udchk(data.gl)+"</td>";
+				html += "<td>"+udchk(data.pressr)+"</td>";
+				html += "<td>"+udchk(data.temp)+"</td>";
+				html += "<td>"+udchk(data.ec)+"</td>";
+				html += "<td>"+udchk(data.baro)+"</td>";
+				html += "<td>"+udchk(data.batt)+"</td>";
+				html += "</tr>";
+			}
+			
+			html2 += cnt;
+			
+			$("#tablebody").empty(html);
+			$("#tablebody").append(html);
+			
+			$("#paginationTotalCnt").empty();
+			$("#paginationTotalCnt").append(html2);
+			
+			$(".loading").hide();
+		}
+	});
+}
+
+
+//센서번호를 selectAvgList로 넘겨줌
+function fn_tabChange(sn){
+	selectAvgList(sn);
+}
+
+
+
+//검색버튼 -> 첫번째 센서 정보 보여줌
+function fn_select(){
+	var sen = 1;
+	fn_tabChange(sen);
+}
+
+
+//엑셀 다운로드
+function fn_excel_down(){
+	$(".loading").show();
+	
+	var sensorNm = document.getElementById('nSensor1').innerText;
+	var searchStatistics = $("#searchStatistics").val();
+	var searchObsvname = $("#searchObsvname").val();
+	var fDate = $("#fDate").val();
+	var lDate = $("#lDate").val();
+	$.ajax({
+		url : "<c:url value='/front/statistics/selectRealTimeDataListExcel2.json'/>",
+		type : "POST",
+		data : {"searchStatistics":searchStatistics, "searchObsvname":searchObsvname, "sensorNm":sensorNm, "fDate":fDate, "lDate":lDate},
+		dataType : "json",
+		success : function(result){
+			$("#excelFileName").val(result.fileName);
+			fn_excel_real_down();
+			$(".loading").hide();
+		},
+		error:function(request,status,error){
+	    	alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+	    }
+	});
+}
+
+function fn_excel_real_down(){
+	$("#searchForm").attr("action", "<c:url value='/front/statistics/selectRealTimeDataListExcelDown.do'/>");
+	$('#searchForm')[0].submit();
+}
+</script>

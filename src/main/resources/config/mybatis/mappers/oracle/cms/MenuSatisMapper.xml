@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.menu.mapper.MenuSatisMapper">
+
+	<select id="selectList" parameterType="cmsMenuSatisSearch" resultType="cmsMenuSatis">
+		select 
+			REG_ID,  REG_DT, REG_NM,  SCORE,  OPINION,
+			(select USER_LOGIN_ID from JCMS_USER where USER_ID = JCMS_SATISFACTION.REG_ID) AS SATIS_REG_ID
+		from 
+			JCMS_SATISFACTION 
+		where 
+			SITE_ID = #{siteId} 
+			and MENU_ID = #{menuId}
+		order by REG_DT DESC
+	</select>
+	
+	<select id="selectSatisfaction" parameterType="cmsMenuSatisSearch" resultType="java.util.Map">
+		select 
+			MENU_ID, 
+			ROUND(SUM(SCORE)/COUNT(SCORE),0) AS SCORE,
+			COUNT(SCORE) AS CNT
+		from
+			JCMS_SATISFACTION 	
+		where
+			1=1	
+		<if test="siteId != null" > and SITE_ID = #{siteId} </if>
+		GROUP BY MENU_ID
+	</select>
+	
+	<select id="count" parameterType="cmsMenuSatisSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(*)
+		from
+			JCMS_SATISFACTION
+		where
+			SITE_ID = #{siteId}
+			and MENU_ID = #{menuId}
+			and REG_ID = #{regId}
+	</select>
+	
+	<insert id="insert" parameterType="cmsMenuSatis">
+		insert into JCMS_SATISFACTION (
+			SITE_ID,
+			MENU_ID,
+			SCORE,
+			REG_ID,
+			REG_NM,
+			REG_DT,
+			REG_IP,
+			OPINION
+		) values (
+			#{siteId},
+			#{menuId},
+			#{score},
+			#{regId},
+			#{regNm, jdbcType=VARCHAR},
+			SYSDATE,
+			#{regIp, jdbcType=VARCHAR},
+			#{opinion, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="update" parameterType="cmsMenuSatis">
+		update JCMS_SATISFACTION set
+			SCORE = #{score},
+			REG_NM = #{regNm, jdbcType=VARCHAR},
+			REG_DT = SYSDATE,
+			REG_IP = #{regIp},
+			OPINION = #{opinion}
+		where
+			SITE_ID = #{siteId}
+			and MENU_ID = #{menuId}
+			and REG_ID = #{regId}
+	</update>
+</mapper>

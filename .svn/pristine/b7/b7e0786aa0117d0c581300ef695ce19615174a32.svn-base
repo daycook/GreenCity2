@@ -1,0 +1,57 @@
+package net.jcms.front.siteChckManage.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.springframework.stereotype.Service;
+
+import net.jcms.framework.base.service.impl.BaseServiceImpl;
+import net.jcms.front.siteChckManage.mapper.SiteChckManageMapper;
+import net.jcms.front.siteChckManage.model.SiteChckManage;
+import net.jcms.front.siteChckManage.model.SiteChckManageSearch;
+import net.jcms.front.siteChckManage.service.SiteChckManageService;
+
+@Service(value="siteChckManageService")
+
+public class SiteChckManageServiceImpl extends BaseServiceImpl<SiteChckManage, SiteChckManageSearch, SiteChckManageMapper> implements SiteChckManageService {
+
+	@Override
+	@Resource (name="siteChckManageMapper")
+	protected void setMapper (SiteChckManageMapper mapper) {
+		super.setMapper (mapper);
+	}
+
+	@Override
+	public List<Map<String, Object>> selectSiteChckList(Map<String, Object> paramMap) {
+		return mapper.selectSiteChckList(paramMap);
+	}
+
+	@Override
+	public int selectSiteChckListTotal(Map<String, Object> paramMap) {
+		return mapper.selectSiteChckListTotal(paramMap);
+	}
+
+	@Override
+	public Map<String, Object> selectSiteAndToolInfo(Map<String, Object> paramMap) {
+		Map<String ,Object> selectSiteAndToolInfo = new HashedMap<>();
+		
+		Map<String, Object> siteAndToolInfo = null;
+		List<Map<String ,Object>> sensorList = null;
+		
+		if(paramMap.get("linkYn").equals("Y")) {	
+			siteAndToolInfo = mapper.selectSiteAndToolInfoLink(paramMap);
+			sensorList = mapper.selectSensorListLink(paramMap);
+		}else{
+			siteAndToolInfo = mapper.selectSiteAndToolInfo(paramMap);
+			sensorList = mapper.selectSensorList(paramMap);
+		}
+		
+		selectSiteAndToolInfo.put("siteAndToolInfo", siteAndToolInfo);
+		selectSiteAndToolInfo.put("sensorList", sensorList);
+		
+		return selectSiteAndToolInfo;
+	}
+}

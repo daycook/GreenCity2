@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.framework.security.mapper.ScurRscRoleMapper">
+
+	<select id="selectList" parameterType="scurRscRole" resultType="scurRscRole">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (	
+			select
+				CSR.RSC_ID, CSR.RSC_NM, CSR.RSC_TP, CSR.RSC_PATN, CSR.RSC_DESC, CSRR.ROLE_AUTH, CSRR.REG_DT
+			from
+				JCMS_SCUR_RSC CSR
+				left join ( select
+								*
+							from
+								JCMS_SCUR_RSC_ROLE
+							where
+								1=1
+							<if test="!empty(roleAuth)" > and ROLE_AUTH = #{roleAuth} </if>
+							) CSRR
+				on
+				CSR.RSC_ID = CSRR.RSC_ID
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose> 
+	        	<when test="sort == 'RSC_ID'"> CSR.RSC_ID </when> 
+	            <when test="sort == 'RSC_NM'"> CSR.RSC_NM </when>
+	            <when test="sort == 'RSC_TP'"> CSR.RSC_TP </when> 
+	            <when test="sort == 'RSC_PATN'"> CSR.RSC_PATN </when> 
+	            <when test="sort == 'RSC_DESC'"> CSR.RSC_DESC </when> 
+	            <when test="sort == 'ROLE_AUTH'"> CSRR.ROLE_AUTH </when>
+	            <when test="sort == 'REG_DT'"> CSRR.REG_DT </when>
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+	       	) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			 where  RNUM  > #{start} and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="scurRscRole" resultType="java.lang.Integer">
+		select
+			COUNT(*)
+		from
+			JCMS_SCUR_RSC_ROLE
+		where
+			1=1
+		<if test="!empty(rscId)"> and RSC_ID = #{rscId} </if>
+		<if test="!empty(roleAuth)"> and ROLE_AUTH = #{roleAuth} </if>
+	</select>
+	
+	<insert id="insert" parameterType="scurRscRole">
+		insert into JCMS_SCUR_RSC_ROLE(
+			RSC_ID,
+			ROLE_AUTH,
+			REG_ID,
+			REG_DT
+		) values (
+			#{rscId},
+			#{roleAuth},
+			#{regId},
+			SYSDATE
+		)
+	</insert>
+	
+	<delete id="delete" parameterType="scurRscRole">
+		delete from JCMS_SCUR_RSC_ROLE
+		where 
+			RSC_ID = #{rscId}
+			and ROLE_AUTH = #{roleAuth} 
+	</delete>
+</mapper>

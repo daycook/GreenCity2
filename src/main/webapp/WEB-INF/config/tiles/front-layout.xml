@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+  "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" 
+  "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+	<definition name="front-layout" template="/WEB-INF/view/tilesLayout/front/layout.jsp">
+		<put-attribute name="header"    value="/WEB-INF/view/tilesLayout/front/header.jsp" />
+		<put-attribute name="subHeader"    value="/WEB-INF/view/tilesLayout/front/subHeader.jsp" />
+		<put-attribute name="main-sidebar"    value="/WEB-INF/view/tilesLayout/front/main-sidebar.jsp" />
+		<put-attribute name="banner"    value="/WEB-INF/view/tilesLayout/front/banner.jsp" />
+		<put-attribute name="footer"    value="/WEB-INF/view/tilesLayout/front/footer.jsp" />
+	</definition>
+	
+	<definition name="front-subLayout" template="/WEB-INF/view/tilesLayout/front/subLayout.jsp">
+		<put-attribute name="header"    value="/WEB-INF/view/tilesLayout/front/header.jsp" />
+		<put-attribute name="subHeader"    value="/WEB-INF/view/tilesLayout/front/subHeader.jsp" />
+		<put-attribute name="main-sidebar"    value="/WEB-INF/view/tilesLayout/front/main-sidebar.jsp" />
+		<put-attribute name="banner"    value="/WEB-INF/view/tilesLayout/front/banner.jsp" />
+		<put-attribute name="footer"    value="/WEB-INF/view/tilesLayout/front/footer.jsp" />
+	</definition>
+	
+	
+	<definition name="front/main" extends="front-layout">
+		<put-attribute name="content"   value="/WEB-INF/view/front/main.jsp" />
+	</definition>
+	<definition name="front/*" extends="front-subLayout">
+		<put-attribute name="content"   value="/WEB-INF/view/front/{1}.jsp" />
+	</definition>
+	<definition name="front/*/*" extends="front-subLayout">
+		<put-attribute name="content"   value="/WEB-INF/view/front/{1}/{2}.jsp" />
+	</definition>
+	<definition name="front/*/*/*" extends="front-subLayout">
+		<put-attribute name="content"   value="/WEB-INF/view/front/{1}/{2}/{3}.jsp" />
+	</definition>
+	<definition name="front/*/*/*/*" extends="front-subLayout">
+		<put-attribute name="content"   value="/WEB-INF/view/front/{1}/{2}/{3}/{4}.jsp" />
+	</definition>
+</tiles-definitions>

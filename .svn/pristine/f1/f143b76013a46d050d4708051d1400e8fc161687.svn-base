@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.conts.popup.mapper.PopupMapper">
+
+	<select id="select" parameterType="popupSearch" resultType="popup">
+		select	
+			POPUP_ID, POPUP_NM, POPUP_TP,
+			(select CD_DTL_NM from JCMS_CD_DTL where CD_ID = 'popup' and CD_DTL_ID = POPUP_TP) AS POPUP_TP_NM,
+			(select CD_DTL_LABEL from JCMS_CD_DTL where CD_ID = 'popup' and CD_DTL_ID = POPUP_TP) AS POPUP_TP_LABEL,
+			FILE_ID, IMG_MAP, ALT, LINK_URL, START_DT, END_DT, WIDTH, HEIGHT,
+			REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+		from		
+			JCMS_POPUP
+		where
+			1=1
+		<if test="!empty(popupId)" > and POPUP_ID = #{popupId} </if>
+	</select>
+	
+	<select id="selectList" parameterType="popupSearch" resultType="popup">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (
+			select	
+				POPUP_ID, POPUP_NM, POPUP_TP,
+				(select CD_DTL_NM from JCMS_CD_DTL where CD_ID = 'popup' and CD_DTL_ID = POPUP_TP) AS POPUP_TP_NM,
+				(select CD_DTL_LABEL from JCMS_CD_DTL where CD_ID = 'popup' and CD_DTL_ID = POPUP_TP) AS POPUP_TP_LABEL,
+				FILE_ID, IMG_MAP, ALT, LINK_URL, START_DT, END_DT, WIDTH, HEIGHT, 
+				REG_ID, REG_DT, UPD_ID, UPD_DT, DEL_ID, DEL_DT
+			from		
+				JCMS_POPUP
+			where
+				DEL_DT IS NULL
+		<if test="!empty(popupNmLike)" > and POPUP_NM LIKE '%'||#{popupNmLike}||'%' </if>
+		<if test="!empty(linkUrlLike)" > and LINK_URL LIKE '%'||{linkUrlLike}||'%' </if>
+		<if test="!empty(popupTp)" > and POPUP_TP = #{popupTp} </if>
+		<if test="startDtThanOrEquals != null" > and START_DT >= #{startDtThanOrEquals}||' 00:00:00' </if>
+		<if test="endDtLessOrEquals != null" >
+		<![CDATA[  
+			and END_DT < ADDDATE(#{endDtLessOrEquals}, INTERVAL 1 DAY)
+		]]>
+		</if>
+		<if test="popupIdIn != null" >
+			and POPUP_ID IN
+			<foreach item="item" index="index" collection="popupIdIn" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    <![CDATA[
+	    	order by
+	    ]]>
+	        <choose>  
+	            <when test="sort == 'POPUP_TP'"> POPUP_TP </when>
+	            <when test="sort == 'POPUP_NM'"> POPUP_NM </when> 
+	            <when test="sort == 'WIDTH'"> WIDTH </when> 
+	            <when test="sort == 'HEIGHT'"> HEIGHT </when> 
+	            <when test="sort == 'LINK_URL'"> LINK_URL </when>
+	            <when test="sort == 'START_DT'"> START_DT </when>   
+	            <when test="sort == 'END_DT'"> END_DT </when> 
+	            <when test="sort == 'REG_DT'"> REG_DT </when>                                                           
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+		    ) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			where  RNUM  > #{start}
+			   and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="popupSearch" resultType="java.lang.Integer">
+		select 
+			COUNT(POPUP_ID)
+		from
+			JCMS_POPUP
+		where
+	   		1 = 1
+		<if test="!empty(popupNmLike)" > and POPUP_NM LIKE '%'||#{popupNmLike}||'%' </if>
+		<if test="!empty(linkUrlLike)" > and LINK_URL LIKE '%'||#{linkUrlLike}||'%' </if>
+		<if test="!empty(popupTp)" > and POPUP_TP = #{popupTp} </if>
+		<if test="startDtThanOrEquals != null" >
+		<![CDATA[ 
+			and START_DT >= #{startDtThanOrEquals}||' 00:00:00'
+		]]>
+		</if>
+		<if test="startDtLessOrEquals != null" >
+		<![CDATA[ 
+			and START_DT <= #{startDtLessOrEquals}||' 23:59:59' 
+		]]>
+		</if>
+		<if test="endDtThanOrEquals != null" >
+		<![CDATA[ 
+			and END_DT >= #{endDtThanOrEquals}||' 00:00:00'
+		]]>
+		</if>
+		<if test="endDtLessOrEquals != null" >
+		<![CDATA[ 
+			and END_DT <= #{endDtLessOrEquals}||' 23:59:59' 
+		]]>
+		</if>
+	</select>
+
+	<insert id="insert" parameterType="popup">
+		insert into JCMS_POPUP (
+			POPUP_ID,
+			POPUP_NM,
+			POPUP_TP,
+			FILE_ID,
+			IMG_MAP,
+			ALT,
+			LINK_URL,
+			START_DT,
+			END_DT,
+			WIDTH,
+			HEIGHT,
+			REG_ID,
+			REG_DT
+		) values (
+			POPUP_ID_SEQ.NEXTVAL
+			, #{popupNm}
+			, #{popupTp}
+			, #{fileId}
+			, #{imgMap,jdbcType=VARCHAR}
+			, #{alt,jdbcType=VARCHAR}
+			, #{linkUrl,jdbcType=VARCHAR}
+			, #{startDt}
+			, #{endDt}
+			, #{width,jdbcType=NUMERIC}
+			, #{height,jdbcType=NUMERIC}
+			, #{regId}
+			, SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterType="popup">
+		update JCMS_POPUP set
+			POPUP_NM = #{popupNm}
+			,POPUP_TP = #{popupTp,jdbcType=VARCHAR}
+			,FILE_ID = #{fileId}
+			,IMG_MAP = #{imgMap,jdbcType=VARCHAR} 
+			,ALT = #{alt,jdbcType=VARCHAR}
+			,LINK_URL = #{linkUrl,jdbcType=VARCHAR}
+			,START_DT = #{startDt}
+			,END_DT = #{endDt}
+			,WIDTH = #{width,jdbcType=NUMERIC}
+			,HEIGHT = #{height,jdbcType=NUMERIC}
+			,UPD_ID = #{updId}
+			,UPD_DT = SYSDATE
+		where 
+			POPUP_ID = #{popupId}
+	</update>
+	
+	<update id="delete" parameterType="popup">
+		update JCMS_POPUP set
+			DEL_ID = #{delId},
+			DEL_DT = SYSDATE
+		where
+			POPUP_ID = #{popupId} 
+	</update>
+</mapper>

@@ -1,0 +1,120 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/view/include/tags.jspf" %>
+<!DOCTYPE html>
+<html style="">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>Front</title>
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<link rel="stylesheet" href="/css/board.css">
+
+<link rel="stylesheet" href="/css/front/bootstrap.css">
+
+<script src="<c:url value='/ckeditor/ckeditor.js' />"></script>
+
+<script src="/js/front/frontCommon.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/css/front/common.css" />
+<link rel="stylesheet" type="text/css" href="/css/front/form.css" />
+<link rel="stylesheet" type="text/css" href="/css/selectStyle.css" />
+
+<!-- amchart -->
+<script src="/js/plugins/amcharts/amcharts.js"></script>
+<script src="/js/plugins/amcharts/serial.js"></script>
+<script src="/js/plugins/amcharts/plugins/export/export.min.js"></script>
+<link rel="stylesheet" href="/js/plugins/amcharts/plugins/export/export.css" type="text/css" media="all" />
+<script src="/js/plugins/amcharts/themes/light.js"></script>
+<script src="/js/plugins/toast-ui/tui-snippet.js"></script>
+<script src="/js/plugins/pagination/pagination.js"></script>
+<script src="//www.amcharts.com/lib/4/core.js"></script>
+<script src="//www.amcharts.com/lib/4/charts.js"></script>
+
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- datepicker한글화 -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="//code.jquery.com/ui/1.8.18/jquery-ui.min.js"></script>
+
+
+<link rel="stylesheet" href="/css/front/modal.css"/>
+<link rel="stylesheet" href="/css/front/loading.css"/>
+
+</head>
+<body class="layoutBody">
+	<div class="content">
+		<div id="header">
+			<tiles:insertAttribute name="header"/>
+		</div>
+		<div id="subHeader" class="web">
+			<tiles:insertAttribute name="subHeader"/>
+		</div>
+		<div id="sidebar-left" class="web">
+			<tiles:insertAttribute name="main-sidebar"/>
+		</div>
+		<div id="main-sub" onclick="hideSideMenuBar()">
+			<tiles:insertAttribute name="content"/>
+		</div>
+		<%-- <div id="banner" class="mobile">
+			<tiles:insertAttribute name="banner"/>
+		</div> --%>
+	</div>
+	<div id="footer">
+		<tiles:insertAttribute name="footer"/>
+	</div>
+	
+	<div class="loading">
+		<div style="text-align: center; margin: 20% auto; ">
+			<img src="/images/front/ajax-loader.gif">
+		</div>
+	</div>
+</body>
+</html>
+<script>
+	$.datepicker.setDefaults({
+	    dateFormat: 'yymmdd',
+	    prevText: '이전 달',
+	    nextText: '다음 달',
+	    monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+	    monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+	    dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+	    dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+	    dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+	    showMonthAfterYear: true,
+	    yearSuffix: '년'
+	});
+
+	
+	$(document).ready(function() {
+		$(".datepicker").datepicker();
+		
+		$( ".datepicker" ).datepicker( "option", "dateFormat", "yy-mm-dd" );
+		
+		var mobileYn = "${paramMap.mobileYn}";
+		if(mobileYn == "MOBI"){
+			$(".web").hide();
+			$(".content").attr('class','content_mobile');
+		}
+	});
+	
+	$(document).keydown(function(event) {
+	    if ( event.keyCode == 27 || event.which == 27 ) {
+	    	fn_close_modal();
+	    }
+	});
+	
+	function hideSideMenuBar(){
+		$(".side-menubar-mb").hide();
+		//$(".modal-content" ).draggable();
+		$(".mapModal").draggable();
+	}
+</script>
+
+<script src="/js/front/chkData.js"></script>

@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'YetHangul';
+    src: url('/fonts/NanumBarunGothic-YetHangul.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'NanumSquare_acB';
+    src: url('/fonts/NanumSquare_acB.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}

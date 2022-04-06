@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.jcms.framework.security.mapper.UserRoleMapper">
+
+	<select id="selectList" parameterType="userRole" resultType="userRole">
+			select
+				USER_ID, ROLE_AUTH
+			from
+				JCMS_USER_ROLE
+			where
+				1 = 1		
+		<if test="!empty(userId)" > and USER_ID = #{userId} </if>
+		<if test="!empty(roleAuth)" > and ROLE_AUTH = #{roleAuth} </if>
+	</select>
+	
+	<select id="select" parameterType="userRole" resultType="userRole">
+			select
+				USER_ID, ROLE_AUTH
+			from
+				JCMS_USER_ROLE
+			where
+				1 = 1	
+		<if test="!empty(userId)" > and USER_ID = #{userId} </if>
+		<if test="!empty(roleAuth)" > and ROLE_AUTH = #{roleAuth} </if>
+	</select>
+	
+	<select id="selectRoleList" parameterType="userRole" resultType="userRole">
+		select  *
+			from  (
+		select ROWNUM RNUM , T.* 
+			from  (
+		select
+		ALL_LIST.*
+			from  (	
+			select 
+				ROLE.ROLE_AUTH
+				,ROLE.ROLE_NM
+				,ROLE.ROLE_DESC
+		  		,AUTH.USER_ID
+			from
+				JCMS_ROLE ROLE
+				left join (	select *
+							from 
+								JCMS_USER_ROLE 
+							where 
+								1 = 1
+								<if test="!empty(userId)" > and USER_ID = #{userId} </if>
+							) AUTH	
+			on 
+				ROLE.ROLE_AUTH = AUTH.ROLE_AUTH				
+		<if test="!empty(sort) and !empty(sortOrd)">
+	    	order by
+	        <choose>  
+	            <when test="sort == 'ROLE_AUTH'"> ROLE.ROLE_AUTH </when>
+	            <when test="sort == 'ROLE_NM'"> ROLE.ROLE_NM </when> 
+	            <when test="sort == 'ROLE_DESC'"> ROLE.ROLE_DESC </when> 
+	            <when test="sort == 'USER_ID'"> AUTH.USER_ID </when> 
+	        </choose>  
+	        <choose>
+	        	<when test="sortOrd == 'asc'"> ASC </when>
+	        	<when test="sortOrd == 'desc'"> DESC </when>
+	        </choose>             
+	 	</if>
+	       	) ALL_LIST
+			where 1 = 1
+			) T
+			)
+	    <if test="pagingYn == true" >
+	    <![CDATA[			    
+			where  RNUM  > #{start} and  RNUM <= #{start} + #{length}
+		]]>
+		</if>
+	</select>
+	
+	<select id="count" parameterType="userRole" resultType="java.lang.Integer">
+		select
+			COUNT(ROLE_AUTH)
+		from
+			JCMS_ROLE
+	</select>
+	
+	<select id="existCount" parameterType="userRole" resultType="java.lang.Integer">
+		select
+			COUNT(ROLE_AUTH)
+		from
+			JCMS_ROLE
+		where
+			(ROLE_AUTH = #{roleAuth} OR ROLE_NM = #{roleNm})
+	</select>
+	
+	<insert id="insert" parameterType="userRole">
+		insert into JCMS_USER_ROLE(
+			USER_ID,
+			ROLE_AUTH
+		) values(
+			#{userId},
+			#{roleAuth}
+		)
+	</insert>
+	
+	<update id="update" parameterType="userRole">
+		update JCMS_USER_ROLE set
+			USER_ID = #{userId},
+			ROLE_AUTH = #{roleAuth}
+		where 
+			USER_ID = #{userId} 
+	</update>
+	
+	<delete id="delete" parameterType="userRole">
+		delete from JCMS_USER_ROLE
+		where USER_ID = #{userId}
+	</delete>
+</mapper>
